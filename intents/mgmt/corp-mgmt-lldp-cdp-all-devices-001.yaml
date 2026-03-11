@@ -1,0 +1,28 @@
+intent:
+  id: corp-mgmt-lldp-cdp-all-devices-001
+  type: mgmt_lldp_cdp
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG0012410
+  description: "Enable LLDP globally, disable CDP globally — all network devices"
+
+  scope:
+    all_tenant_devices: true
+
+  lldp_global: true
+  cdp_global: false
+
+  lldp_interfaces:
+    - interface: Ethernet1
+      enabled: true
+    - interface: Ethernet2
+      enabled: true
+
+  cdp_interfaces: []
+
+  disable_on:
+    - Management0
+
+  policy:
+    compliance: NONE
+    encryption: none
