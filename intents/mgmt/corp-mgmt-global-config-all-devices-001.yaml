@@ -11,6 +11,7 @@ intent:
 
   management:
     # Hostname / Domain
+    hostname: "lab-arista-sw01"
     domain_name: "acme-corp.local"
 
     # NTP
@@ -41,6 +42,7 @@ intent:
     syslog_trap_level: "informational"
 
     # SNMP
+    snmp_version: "3"
     snmp_community: "acme-RO-2025"
     snmp_location: "DC-East, Rack A1"
     snmp_contact: "noc@acme-corp.com"
@@ -75,6 +77,7 @@ intent:
     compliance: NONE
     encryption: tls
 
+<<<<<<< HEAD
   deployment:
     controller: nornir
     strategy: rolling
@@ -82,3 +85,25 @@ intent:
       level: basic
       trigger: on_deploy
       fail_action: alert
+=======
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmUsers
+        label: "Verify admin user exists on managed devices"
+        test_data:
+          - host: lab-arista-sw01
+            expected:
+              - username: admin
+                level: 15
+      - test_class: TestNapalmInterfaces
+        label: "Verify management interface is up"
+        test_data:
+          - host: lab-arista-sw01
+            expected:
+              - name: Management0
+                is_enabled: true
+                is_up: true
+>>>>>>> 256ce52 (feat: add verification section to multiple intents for enhanced testing capabilities)

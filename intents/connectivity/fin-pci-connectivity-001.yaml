@@ -36,6 +36,7 @@ intent:
       - snmpv1
       - snmpv2
 
+<<<<<<< HEAD
   deployment:
     controller: nornir
     strategy: all_at_once
@@ -44,3 +45,25 @@ intent:
       trigger: both
       fail_action: rollback
       schedule: "0 */6 * * *"
+=======
+  verification:
+    level: nuts
+    trigger: both
+    schedule: "*/15 * * * *"
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmBgpNeighbors
+        label: "Verify MPLS PE BGP sessions for PCI traffic path"
+        test_data:
+          - host: dc-east-pe-01
+            expected:
+              - peer: dc-west-pe-01
+                state: Established
+      - test_class: TestNapalmNetworkInstances
+        label: "Verify PCI VRF is present on PE routers"
+        test_data:
+          - host: dc-east-pe-01
+            expected:
+              - name: PCI-FINANCE
+                type: L3VRF
+>>>>>>> 256ce52 (feat: add verification section to multiple intents for enhanced testing capabilities)

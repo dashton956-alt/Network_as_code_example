@@ -22,6 +22,7 @@ intent:
     compliance: NONE
     encryption: none
 
+<<<<<<< HEAD
   deployment:
     controller: catalyst_center
     controller_site: campus-london
@@ -30,3 +31,18 @@ intent:
       level: basic
       trigger: on_deploy
       fail_action: alert
+=======
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmInterfaces
+        label: "Verify guest VLAN interface is up"
+        test_data:
+          - host: campus-lon-wlc-01
+            expected:
+              - name: Vlan500
+                is_enabled: true
+                is_up: true
+>>>>>>> 256ce52 (feat: add verification section to multiple intents for enhanced testing capabilities)

@@ -1,0 +1,20 @@
+intent:
+  id: corp-l2-access-servers-dc-east-001
+  type: l2_access_port
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG0012360
+  description: "Configure server-facing access ports on DC East leaf switches — VLAN 100 (SERVERS-PROD)"
+
+  scope:
+    sites:
+      - dc-east
+    roles:
+      - access-switch
+
+  interface: Ethernet1
+  vlan_id: 100
+  voice_vlan:
+  description: "Server PROD — VLAN 100"
+  portfast: true
+  bpdu_guard: true

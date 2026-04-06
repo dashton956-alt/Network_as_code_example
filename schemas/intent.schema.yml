@@ -729,6 +729,73 @@ mapping:
             sequence:
               - type: str
 
+      # ── Verification ───────────────────────────────────────────────────────
+      verification:
+        type: map
+        required: false
+        mapping:
+          level:
+            type: str
+            required: false
+            enum: [basic, nuts]
+          trigger:
+            type: str
+            required: false
+            enum: [on_deploy, scheduled, both]
+          schedule:
+            type: str
+            required: false
+          fail_action:
+            type: str
+            required: false
+            enum: [alert, rollback, remediate]
+          tests:
+            type: seq
+            required: false
+            sequence:
+              - type: map
+                mapping:
+                  test_class:
+                    type: str
+                    required: true
+                    enum:
+                      # NAPALM-based tests
+                      - TestNapalmBgpNeighbors
+                      - TestNapalmBgpNeighborsCount
+                      - TestNapalmArp
+                      - TestNapalmArpRange
+                      - TestNapalmInterfaces
+                      - TestNapalmLldpNeighbors
+                      - TestNapalmLldpNeighborsCount
+                      - TestNapalmPing
+                      - TestNapalmConfig
+                      - TestNapalmUsers
+                      - TestNapalmOnlyDefinedUsersExist
+                      - TestNapalmVlans
+                      - TestNapalmInterfaceInVlan
+                      - TestNapalmOnlyDefinedVlansExist
+                      - TestNapalmNetworkInstances
+                      # Netmiko-based tests (require ntc-templates)
+                      - TestNetmikoCdpNeighbors
+                      - TestNetmikoCdpNeighborsCount
+                      - TestNetmikoOspfNeighbors
+                      - TestNetmikoOspfNeighborsCount
+                      - TestNetmikoIperf
+                  label:
+                    type: str
+                    required: false
+                  test_execution:
+                    type: map
+                    required: false
+                    allowempty: true
+                  test_data:
+                    type: seq
+                    required: true
+                    sequence:
+                      - type: map
+                        matching-rule: any
+                        allowempty: true
+
       # ── Scope (used by several intent types) ─────────────────────────────
       scope:
         type: map

@@ -39,6 +39,7 @@ intent:
     compliance: NONE
     encryption: none
 
+<<<<<<< HEAD
   deployment:
     controller: nornir
     strategy: all_at_once
@@ -46,3 +47,17 @@ intent:
       level: basic
       trigger: on_deploy
       fail_action: alert
+=======
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmConfig
+        label: "Verify DHCP pools in running config"
+        test_data:
+          - host: dc-east-dist-01
+            expected:
+              - config_snippet: "ip dhcp pool SERVER-MGMT-POOL"
+              - config_snippet: "network 10.10.100.0/24"
+>>>>>>> 256ce52 (feat: add verification section to multiple intents for enhanced testing capabilities)

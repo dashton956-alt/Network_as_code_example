@@ -1,0 +1,23 @@
+intent:
+  id: corp-l2-trunk-spine-uplink-dc-east-001
+  type: l2_trunk_port
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG0012364
+  description: "Configure spine-facing trunk uplinks on DC East leaf switches — Ethernet49"
+
+  scope:
+    sites:
+      - dc-east
+    roles:
+      - access-switch
+
+  interface: Ethernet49
+  allowed_vlans:
+    - 100
+    - 101
+    - 200
+    - 300
+    - 999
+  native_vlan: 1
+  description: "Trunk uplink to spine — Ethernet49"

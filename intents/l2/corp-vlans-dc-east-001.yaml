@@ -29,6 +29,7 @@ intent:
       name: QUARANTINE
       description: "Quarantine VLAN for non-compliant devices"
 
+<<<<<<< HEAD
   deployment:
     controller: nornir
     strategy: rolling
@@ -36,3 +37,25 @@ intent:
       level: basic
       trigger: on_deploy
       fail_action: alert
+=======
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmVlans
+        label: "Verify standard VLANs are provisioned"
+        test_data:
+          - host: dc-east-leaf-01
+            expected:
+              - id: 100
+                name: SERVERS-PROD
+              - id: 101
+                name: SERVERS-DEV
+              - id: 200
+                name: STORAGE
+              - id: 300
+                name: MGMT
+              - id: 999
+                name: QUARANTINE
+>>>>>>> 256ce52 (feat: add verification section to multiple intents for enhanced testing capabilities)

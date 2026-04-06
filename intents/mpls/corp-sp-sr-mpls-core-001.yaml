@@ -24,6 +24,7 @@ intent:
     compliance: NONE
     encryption: none
 
+<<<<<<< HEAD
   deployment:
     controller: nornir
     strategy: rolling
@@ -32,3 +33,26 @@ intent:
       trigger: both
       fail_action: rollback
       schedule: "0 */2 * * *"
+=======
+  verification:
+    level: nuts
+    trigger: both
+    schedule: "0 */6 * * *"
+    fail_action: alert
+    tests:
+      - test_class: TestNetmikoOspfNeighbors
+        label: "Verify IS-IS/OSPF adjacencies in MPLS core"
+        test_data:
+          - host: dc-east-p-01
+            expected:
+              - neighbor_id: dc-west-p-01
+                state: FULL
+      - test_class: TestNapalmInterfaces
+        label: "Verify core-facing interfaces are up"
+        test_data:
+          - host: dc-east-p-01
+            expected:
+              - name: Ethernet1
+                is_enabled: true
+                is_up: true
+>>>>>>> 256ce52 (feat: add verification section to multiple intents for enhanced testing capabilities)
