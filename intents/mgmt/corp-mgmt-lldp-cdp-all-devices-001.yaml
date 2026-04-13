@@ -27,15 +27,10 @@ intent:
     compliance: NONE
     encryption: none
 
-<<<<<<< HEAD
   deployment:
     controller: nornir
     strategy: rolling
-    verification:
-      level: basic
-      trigger: on_deploy
-      fail_action: alert
-=======
+
   verification:
     level: nuts
     trigger: on_deploy
@@ -52,4 +47,3 @@ intent:
             expected:
               - local_port: Ethernet1
                 neighbor: lab-spine-02
->>>>>>> 256ce52 (feat: add verification section to multiple intents for enhanced testing capabilities)

@@ -18,16 +18,10 @@ intent:
     compliance: NONE
     encryption: required
 
-<<<<<<< HEAD
   deployment:
     controller: nornir
     strategy: canary
-    verification:
-      level: extended
-      trigger: both
-      fail_action: rollback
-      schedule: "0 */4 * * *"
-=======
+
   verification:
     level: nuts
     trigger: both
@@ -36,9 +30,6 @@ intent:
     tests:
       - test_class: TestNapalmBgpNeighbors
         label: "Verify BGP session to AWS Direct Connect"
-        test_data:
-          - host: dc-east-edge-01
-            expected:
-              - peer: aws-dx-peer
-                state: Established
->>>>>>> 256ce52 (feat: add verification section to multiple intents for enhanced testing capabilities)
+        expected:
+          - peer: aws-dx-peer
+            state: Established

@@ -28,15 +28,10 @@ intent:
     compliance: NONE
     encryption: none
 
-<<<<<<< HEAD
   deployment:
     controller: nornir
     strategy: all_at_once
-    verification:
-      level: extended
-      trigger: on_deploy
-      fail_action: rollback
-=======
+
   verification:
     level: nuts
     trigger: both
@@ -45,18 +40,13 @@ intent:
     tests:
       - test_class: TestNapalmBgpNeighbors
         label: "Verify eBGP sessions to Telia"
-        test_data:
-          - host: lon-edge-rtr-01
-            expected:
-              - peer: 195.12.0.1
-                remote_as: 1299
-                state: Established
-              - peer: 195.12.0.3
-                remote_as: 1299
-                state: Established
+        expected:
+          - peer: 195.12.0.1
+            remote_as: 1299
+            state: Established
+          - peer: 195.12.0.3
+            remote_as: 1299
+            state: Established
       - test_class: TestNapalmBgpNeighborsCount
         label: "Verify exactly 2 BGP peers on edge router"
-        test_data:
-          - host: lon-edge-rtr-01
-            expected_count: 2
->>>>>>> 256ce52 (feat: add verification section to multiple intents for enhanced testing capabilities)
+        expected_count: 2

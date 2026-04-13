@@ -25,15 +25,10 @@ intent:
     compliance: NONE
     encryption: none
 
-<<<<<<< HEAD
   deployment:
     controller: nornir
     strategy: all_at_once
-    verification:
-      level: basic
-      trigger: on_deploy
-      fail_action: alert
-=======
+
   verification:
     level: nuts
     trigger: on_deploy
@@ -41,9 +36,6 @@ intent:
     tests:
       - test_class: TestNapalmConfig
         label: "Verify segmentation ACLs are applied"
-        test_data:
-          - host: dc-east-fw-01
-            expected:
-              - config_snippet: "deny ip any 10.100.0.0/16"
-              - config_snippet: "permit ip any any"
->>>>>>> 256ce52 (feat: add verification section to multiple intents for enhanced testing capabilities)
+        expected:
+          - config_snippet: "deny ip any 10.100.0.0/16"
+          - config_snippet: "permit ip any any"

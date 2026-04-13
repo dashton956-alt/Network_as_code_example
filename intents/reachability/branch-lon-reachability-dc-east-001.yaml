@@ -25,15 +25,10 @@ intent:
     compliance: NONE
     encryption: none
 
-<<<<<<< HEAD
   deployment:
     controller: nornir
     strategy: all_at_once
-    verification:
-      level: basic
-      trigger: on_deploy
-      fail_action: alert
-=======
+
   verification:
     level: nuts
     trigger: on_deploy
@@ -41,9 +36,6 @@ intent:
     tests:
       - test_class: TestNapalmPing
         label: "Verify reachability from London branch to DC East"
-        test_data:
-          - host: lon-branch-rtr-01
-            expected:
-              - destination: 10.0.0.1
-                success: true
->>>>>>> 256ce52 (feat: add verification section to multiple intents for enhanced testing capabilities)
+        expected:
+          - destination: 10.0.0.1
+            success: true

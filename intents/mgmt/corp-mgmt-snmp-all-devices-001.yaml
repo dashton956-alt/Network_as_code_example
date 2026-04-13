@@ -19,15 +19,10 @@ intent:
     compliance: NONE
     encryption: none
 
-<<<<<<< HEAD
   deployment:
     controller: nornir
     strategy: rolling
-    verification:
-      level: basic
-      trigger: on_deploy
-      fail_action: alert
-=======
+
   verification:
     level: nuts
     trigger: on_deploy
@@ -35,13 +30,6 @@ intent:
     tests:
       - test_class: TestNapalmUsers
         label: "Verify management users are configured"
-        test_data:
-          - host: lab-arista-sw01
-            expected:
-              - username: admin
-                level: 15
-          - host: lab-arista-sw02
-            expected:
-              - username: admin
-                level: 15
->>>>>>> 256ce52 (feat: add verification section to multiple intents for enhanced testing capabilities)
+        expected:
+          - username: admin
+            level: 15

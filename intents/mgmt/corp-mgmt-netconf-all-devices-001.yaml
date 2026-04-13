@@ -21,15 +21,10 @@ intent:
     compliance: NONE
     encryption: tls
 
-<<<<<<< HEAD
   deployment:
     controller: nornir
     strategy: rolling
-    verification:
-      level: basic
-      trigger: on_deploy
-      fail_action: alert
-=======
+
   verification:
     level: nuts
     trigger: on_deploy
@@ -37,8 +32,5 @@ intent:
     tests:
       - test_class: TestNapalmConfig
         label: "Verify NETCONF is enabled"
-        test_data:
-          - host: lab-arista-sw01
-            expected:
-              - config_snippet: "management api netconf"
->>>>>>> 256ce52 (feat: add verification section to multiple intents for enhanced testing capabilities)
+        expected:
+          - config_snippet: "management api netconf"

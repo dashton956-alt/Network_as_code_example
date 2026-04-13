@@ -31,16 +31,10 @@ intent:
     compliance: NONE
     encryption: required
 
-<<<<<<< HEAD
   deployment:
     controller: nornir
     strategy: canary
-    verification:
-      level: extended
-      trigger: both
-      fail_action: rollback
-      schedule: "0 */4 * * *"
-=======
+
   verification:
     level: nuts
     trigger: both
@@ -49,17 +43,12 @@ intent:
     tests:
       - test_class: TestNapalmBgpNeighbors
         label: "Verify iBGP over IPSec tunnel"
-        test_data:
-          - host: lon-branch-rtr-01
-            expected:
-              - peer: 10.200.0.2
-                remote_as: 65001
-                state: Established
+        expected:
+          - peer: 10.200.0.2
+            remote_as: 65001
+            state: Established
       - test_class: TestNapalmPing
         label: "Verify tunnel endpoint reachability"
-        test_data:
-          - host: lon-branch-rtr-01
-            expected:
-              - destination: 198.51.100.50
-                success: true
->>>>>>> 256ce52 (feat: add verification section to multiple intents for enhanced testing capabilities)
+        expected:
+          - destination: 198.51.100.50
+            success: true

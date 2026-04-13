@@ -18,15 +18,10 @@ intent:
     compliance: NONE
     encryption: required
 
-<<<<<<< HEAD
   deployment:
     controller: nornir
     strategy: all_at_once
-    verification:
-      level: basic
-      trigger: on_deploy
-      fail_action: alert
-=======
+
   verification:
     level: nuts
     trigger: on_deploy
@@ -34,9 +29,6 @@ intent:
     tests:
       - test_class: TestNapalmNetworkInstances
         label: "Verify VPC peering VRF exists"
-        test_data:
-          - host: dc-east-edge-01
-            expected:
-              - name: AWS-PROD
-                type: L3VRF
->>>>>>> 256ce52 (feat: add verification section to multiple intents for enhanced testing capabilities)
+        expected:
+          - name: AWS-PROD
+            type: L3VRF

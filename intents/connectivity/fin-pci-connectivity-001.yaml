@@ -36,16 +36,10 @@ intent:
       - snmpv1
       - snmpv2
 
-<<<<<<< HEAD
   deployment:
     controller: nornir
     strategy: all_at_once
-    verification:
-      level: extended
-      trigger: both
-      fail_action: rollback
-      schedule: "0 */6 * * *"
-=======
+
   verification:
     level: nuts
     trigger: both
@@ -61,9 +55,6 @@ intent:
                 state: Established
       - test_class: TestNapalmNetworkInstances
         label: "Verify PCI VRF is present on PE routers"
-        test_data:
-          - host: dc-east-pe-01
-            expected:
-              - name: PCI-FINANCE
-                type: L3VRF
->>>>>>> 256ce52 (feat: add verification section to multiple intents for enhanced testing capabilities)
+        expected:
+          - name: PCI-FINANCE
+            type: L3VRF

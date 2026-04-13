@@ -50,15 +50,10 @@ intent:
     compliance: NONE
     encryption: none
 
-<<<<<<< HEAD
   deployment:
     controller: nornir
     strategy: rolling
-    verification:
-      level: basic
-      trigger: on_deploy
-      fail_action: alert
-=======
+
   verification:
     level: nuts
     trigger: on_deploy
@@ -66,9 +61,6 @@ intent:
     tests:
       - test_class: TestNapalmConfig
         label: "Verify QoS policy-map is configured"
-        test_data:
-          - host: lon-branch-rtr-01
-            expected:
-              - config_snippet: "class-map VOICE"
-              - config_snippet: "class-map VIDEO"
->>>>>>> 256ce52 (feat: add verification section to multiple intents for enhanced testing capabilities)
+        expected:
+          - config_snippet: "class-map VOICE"
+          - config_snippet: "class-map VIDEO"

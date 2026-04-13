@@ -25,16 +25,10 @@ intent:
     compliance: NONE
     encryption: none
 
-<<<<<<< HEAD
   deployment:
     controller: nornir
     strategy: canary
-    verification:
-      level: extended
-      trigger: both
-      fail_action: rollback
-      schedule: "0 */2 * * *"
-=======
+
   verification:
     level: nuts
     trigger: on_deploy
@@ -69,4 +63,3 @@ intent:
                 neighbor: dc-east-leaf-01
               - local_port: Ethernet2
                 neighbor: dc-east-leaf-02
->>>>>>> 256ce52 (feat: add verification section to multiple intents for enhanced testing capabilities)

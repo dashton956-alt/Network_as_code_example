@@ -788,9 +788,16 @@ mapping:
                     type: map
                     required: false
                     allowempty: true
+                  expected:
+                    type: seq
+                    required: false
+                    sequence:
+                      - type: map
+                        matching-rule: any
+                        allowempty: true
                   test_data:
                     type: seq
-                    required: true
+                    required: false
                     sequence:
                       - type: map
                         matching-rule: any

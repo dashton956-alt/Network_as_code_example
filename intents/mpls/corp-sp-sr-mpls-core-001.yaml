@@ -24,16 +24,10 @@ intent:
     compliance: NONE
     encryption: none
 
-<<<<<<< HEAD
   deployment:
     controller: nornir
     strategy: rolling
-    verification:
-      level: extended
-      trigger: both
-      fail_action: rollback
-      schedule: "0 */2 * * *"
-=======
+
   verification:
     level: nuts
     trigger: both
@@ -49,10 +43,7 @@ intent:
                 state: FULL
       - test_class: TestNapalmInterfaces
         label: "Verify core-facing interfaces are up"
-        test_data:
-          - host: dc-east-p-01
-            expected:
-              - name: Ethernet1
-                is_enabled: true
-                is_up: true
->>>>>>> 256ce52 (feat: add verification section to multiple intents for enhanced testing capabilities)
+        expected:
+          - name: Ethernet1
+            is_enabled: true
+            is_up: true
