@@ -1,0 +1,51 @@
+intent:
+  id: corp-mgmt-telemetry-all-devices-001
+  type: mgmt_telemetry
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG0012403
+  description: "gRPC streaming telemetry — all network devices — dial-out to central collector"
+
+  scope:
+    all_tenant_devices: true
+
+  destination_ip: "10.0.1.210"
+  destination_port: 57000
+  protocol: grpc
+  encoding: gpb
+  source_interface: "Management0"
+  subscriptions:
+    - name: "interfaces"
+      path: "/interfaces/interface/state/counters"
+      interval: 30000
+    - name: "bgp"
+      path: "/network-instances/network-instance/protocols/protocol/bgp"
+      interval: 60000
+    - name: "cpu"
+      path: "/components/component/cpu/utilization/state"
+      interval: 30000
+    - name: "memory"
+      path: "/components/component/memory/state"
+      interval: 60000
+
+  policy:
+    compliance: NONE
+    encryption: tls
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmConfig
+        label: "Verify telemetry destination configured"
+        expected:
+          - config_snippet: "destination 10.0.1.210"
+      - test_class: TestNapalmConfig
+        label: "Verify gNMI transport is enabled"
+        expected:
+          - config_snippet: "management api gnmi"
