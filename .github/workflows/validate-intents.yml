@@ -1,0 +1,92 @@
+name: Validate Intents
+
+on:
+  push:
+    paths:
+      - "intents/**"
+  pull_request:
+    paths:
+      - "intents/**"
+
+jobs:
+  validate:
+    name: YAML syntax & schema check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pykwalify pyyaml
+
+      - name: Detect changed intent files
+        id: changed
+        run: |
+          # On a push event use the before/after SHAs.
+          # On a pull_request event compare against the base branch.
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE=${{ github.event.pull_request.base.sha }}
+            HEAD=${{ github.event.pull_request.head.sha }}
+          else
+            BASE=${{ github.event.before }}
+            HEAD=${{ github.event.after }}
+          fi
+
+          # Fall back to all intent files when the before SHA is the null ref
+          # (e.g. a freshly pushed branch with no previous commit known).
+          if [ "$BASE" = "0000000000000000000000000000000000000000" ] || [ -z "$BASE" ]; then
+            FILES=$(find intents -name "*.yaml" -o -name "*.yml" | sort)
+          else
+            FILES=$(git diff --name-only "$BASE" "$HEAD" -- 'intents/**' | grep -E '\.(yaml|yml)$' || true)
+          fi
+
+          echo "files<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$FILES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: YAML syntax check
+        run: |
+          set +e
+          FAILED=0
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            python - <<PYEOF
+          import sys, yaml
+          try:
+              with open("$file", encoding="utf-8") as f:
+                  yaml.safe_load(f)
+              print("  OK  $file")
+          except yaml.YAMLError as exc:
+              print(f"  FAIL  $file\n       {exc}", file=sys.stderr)
+              sys.exit(1)
+          PYEOF
+            if [ $? -ne 0 ]; then
+              FAILED=1
+            fi
+          done <<< "${{ steps.changed.outputs.files }}"
+          exit $FAILED
+
+      - name: Schema validation
+        run: |
+          set +e
+          FAILED=0
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            echo "Validating $file"
+            pykwalify \
+              --data-file "$file" \
+              --schema-file schemas/intent.schema.yml
+            if [ $? -ne 0 ]; then
+              echo "  SCHEMA FAIL: $file"
+              FAILED=1
+            else
+              echo "  SCHEMA OK:   $file"
+            fi
+          done <<< "${{ steps.changed.outputs.files }}"
+          exit $FAILED
