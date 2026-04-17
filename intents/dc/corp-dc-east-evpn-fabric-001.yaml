@@ -28,6 +28,7 @@ intent:
   deployment:
     controller: nornir
     strategy: canary
+    save_config: true
 
   verification:
     level: nuts

@@ -39,6 +39,7 @@ intent:
   deployment:
     controller: nornir
     strategy: all_at_once
+    save_config: true
 
   verification:
     level: nuts

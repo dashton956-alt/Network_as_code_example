@@ -35,17 +35,18 @@ intent:
   deployment:
     controller: nornir
     strategy: rolling
+    save_config: true
 
   verification:
     level: nuts
     trigger: on_deploy
     fail_action: alert
     tests:
-      - test_class: TestNapalmConfig
+      - test_class: TestNapalmRunningConfigContains
         label: "Verify telemetry destination configured"
         expected:
           - config_snippet: "destination 10.0.1.210"
-      - test_class: TestNapalmConfig
+      - test_class: TestNapalmRunningConfigContains
         label: "Verify gNMI transport is enabled"
         expected:
           - config_snippet: "management api gnmi"

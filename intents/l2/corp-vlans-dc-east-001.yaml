@@ -32,6 +32,7 @@ intent:
   deployment:
     controller: nornir
     strategy: rolling
+    save_config: true
 
   verification:
     level: nuts

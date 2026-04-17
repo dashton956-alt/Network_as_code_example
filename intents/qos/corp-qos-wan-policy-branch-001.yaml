@@ -53,13 +53,14 @@ intent:
   deployment:
     controller: nornir
     strategy: rolling
+    save_config: true
 
   verification:
     level: nuts
     trigger: on_deploy
     fail_action: alert
     tests:
-      - test_class: TestNapalmConfig
+      - test_class: TestNapalmRunningConfigContains
         label: "Verify QoS policy-map is configured"
         expected:
           - config_snippet: "class-map VOICE"

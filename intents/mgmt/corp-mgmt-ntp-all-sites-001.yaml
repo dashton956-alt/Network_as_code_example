@@ -22,13 +22,14 @@ intent:
   deployment:
     controller: nornir
     strategy: rolling
+    save_config: true
 
   verification:
     level: nuts
     trigger: on_deploy
     fail_action: alert
     tests:
-      - test_class: TestNapalmConfig
+      - test_class: TestNapalmRunningConfigContains
         label: "Verify NTP servers in running config"
         expected:
           - config_snippet: "ntp server 10.0.0.1"

@@ -23,18 +23,19 @@ intent:
   deployment:
     controller: nornir
     strategy: rolling
+    save_config: true
 
   verification:
     level: nuts
     trigger: on_deploy
     fail_action: alert
     tests:
-      - test_class: TestNapalmConfig
+      - test_class: TestNapalmRunningConfigContains
         label: "Verify syslog servers in running config"
         expected:
           - config_snippet: "logging host 10.0.1.200"
           - config_snippet: "logging host 10.0.1.201"
-      - test_class: TestNapalmConfig
+      - test_class: TestNapalmRunningConfigContains
         label: "Verify syslog facility and severity"
         expected:
           - config_snippet: "logging facility local7"

@@ -846,6 +846,9 @@ mapping:
             type: str
             required: false
             enum: [all_at_once, canary, rolling]
+          save_config:
+            type: bool
+            required: false
           verification:
             type: map
             required: false
