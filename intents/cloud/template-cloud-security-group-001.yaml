@@ -1,0 +1,60 @@
+intent:
+  id: template-cloud-security-group-001
+  type: cloud_security_group
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Cloud Firewall / Security Group — define AWS Security Group rules for application tier"
+
+  scope:
+    devices:
+      - cloud-aws-lon-sg-01      # virtual device for AWS security group management
+
+  cloud:
+    provider: aws
+    region: eu-west-2
+    security_groups:
+      - name: sg-app-tier-prod
+        description: "Application tier — allow from web tier only"
+        vpc_id: vpc-0a1b2c3d4e5f
+        ingress:
+          - protocol: tcp
+            from_port: 8080
+            to_port: 8080
+            source_sg: sg-web-tier-prod
+            description: "App port from web tier"
+          - protocol: tcp
+            from_port: 22
+            to_port: 22
+            source_cidr: "10.1.0.0/24"
+            description: "SSH from bastion"
+        egress:
+          - protocol: tcp
+            from_port: 5432
+            to_port: 5432
+            dest_sg: sg-db-tier-prod
+            description: "DB access to data tier"
+          - protocol: tcp
+            from_port: 443
+            to_port: 443
+            dest_cidr: "0.0.0.0/0"
+            description: "HTTPS egress for APIs"
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify security group rules applied"
+        expected:
+          - config_snippet: "sg-app-tier-prod"

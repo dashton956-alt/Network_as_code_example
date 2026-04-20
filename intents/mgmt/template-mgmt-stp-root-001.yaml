@@ -1,0 +1,47 @@
+intent:
+  id: template-mgmt-stp-root-001
+  type: mgmt_stp_root
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Spanning Tree Root — configure distribution switches as STP root for all VLANs"
+
+  scope:
+    sites:
+      - dc-east
+    roles:
+      - distribution-switch
+
+  management:
+    stp_root:
+      mode: rapid-pvst
+      root_vlans:
+        - 1-999                   # primary root for all VLANs
+      priority: 4096              # primary root bridge priority
+      secondary:                  # secondary priority for pair
+        device_role: backup-distribution
+        priority: 8192
+      diameter: 7                 # network diameter for timers
+      hello_time: 2
+      forward_delay: 15
+      max_age: 20
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify STP root priority configured"
+        expected:
+          - config_snippet: "spanning-tree vlan"
+          - config_snippet: "priority 4096"

@@ -1,0 +1,41 @@
+intent:
+  id: template-ra-guard-001
+  type: ra_guard
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "RA Guard (IPv6) — drop rogue IPv6 Router Advertisements on access ports"
+
+  scope:
+    roles:
+      - access-switch
+
+  security:
+    ra_guard:
+      policy_name: RA-GUARD-BLOCK
+      device_role: host             # host | router
+      apply_to_all_access_ports: true
+      router_ports:
+        - interface: GigabitEthernet0/1
+          policy: RA-GUARD-ALLOW    # uplinks allowed to forward RAs
+      block_ports:
+        - pattern: Ethernet[0-9]+   # all access ports
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify IPv6 RA guard policy configured"
+        expected:
+          - config_snippet: "ipv6 nd raguard policy"

@@ -1,0 +1,45 @@
+intent:
+  id: template-cloud-nat-001
+  type: cloud_nat
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Cloud NAT — provision AWS NAT Gateway for private subnet outbound Internet access"
+
+  scope:
+    devices:
+      - cloud-aws-lon-nat-01     # virtual device for cloud NAT resources
+
+  cloud:
+    provider: aws
+    region: eu-west-2
+    nat:
+      type: nat-gateway           # nat-gateway | nat-instance
+      allocation: elastic-ip      # elastic-ip | private
+      name: acme-corp-nat-gw-eu-west-2
+      subnet_id: subnet-0a1b2c3d  # public subnet for NAT GW
+      private_subnets:            # subnets that route through this NAT
+        - subnet-2a3b4c5d         # private app subnet
+        - subnet-3a4b5c6d         # private DB subnet
+      route_table:
+        - route_table_id: rtb-0a1b2c3d
+          destination: "0.0.0.0/0"
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify cloud NAT gateway created"
+        expected:
+          - config_snippet: "nat-gateway"

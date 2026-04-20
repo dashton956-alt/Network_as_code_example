@@ -1,0 +1,51 @@
+intent:
+  id: template-dmvpn-001
+  type: dmvpn
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "DMVPN — configure Phase 3 hub-spoke DMVPN with NHRP shortcut switching"
+
+  scope:
+    devices:
+      - lon-hub-rtr-01        # configure hub; spokes via separate intent
+
+  security:
+    dmvpn:
+      phase: 3
+      role: hub               # hub | spoke
+      hub_ip: "203.0.113.10"  # NBMA address of this hub
+      tunnel_interface: Tunnel100
+      tunnel_ip: "10.99.0.1/24"
+      nhrp:
+        network_id: 100
+        auth_ref: vault:secret/dmvpn/nhrp-auth
+        hold_time: 600
+        redirect: true          # Phase 3 — hub sends NHRP redirects
+      ipsec_profile: DMVPN-IPSEC-PROFILE
+      routing:
+        protocol: ospf
+        process_id: 100
+        area: "0.0.0.0"
+        network_type: point-to-multipoint
+        priority: 0             # hub should not be DR
+
+  policy:
+    compliance: NONE
+    encryption: ipsec
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify DMVPN tunnel configured"
+        expected:
+          - config_snippet: "tunnel mode gre multipoint"
+          - config_snippet: "ip nhrp network-id 100"

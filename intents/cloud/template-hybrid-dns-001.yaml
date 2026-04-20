@@ -1,0 +1,58 @@
+intent:
+  id: template-hybrid-dns-001
+  type: hybrid_dns
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Hybrid DNS — configure DNS resolution between on-prem and cloud using Route 53 Resolver"
+
+  scope:
+    devices:
+      - cloud-aws-lon-dns-01     # virtual device for DNS resolver management
+
+  cloud:
+    provider: aws
+    region: eu-west-2
+    hybrid_dns:
+      resolver:
+        inbound_endpoint:
+          name: acme-corp-inbound-resolver
+          vpc_id: vpc-0a1b2c3d4e5f
+          subnet_ids:
+            - subnet-0a1b2c3d
+            - subnet-1a2b3c4d
+        outbound_endpoint:
+          name: acme-corp-outbound-resolver
+          vpc_id: vpc-0a1b2c3d4e5f
+          subnet_ids:
+            - subnet-0a1b2c3d
+            - subnet-1a2b3c4d
+      forwarding_rules:
+        - name: onprem-corp-zone
+          domain: "acme-corp.internal"
+          type: FORWARD
+          target_ips:
+            - "10.1.1.10"       # on-prem primary DNS
+            - "10.1.1.11"       # on-prem secondary DNS
+        - name: aws-private-zone
+          domain: "aws.acme-corp.internal"
+          type: SYSTEM           # resolve in AWS
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify hybrid DNS resolver endpoints"
+        expected:
+          - config_snippet: "acme-corp-inbound-resolver"

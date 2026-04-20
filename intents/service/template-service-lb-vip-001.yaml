@@ -1,0 +1,60 @@
+intent:
+  id: template-service-lb-vip-001
+  type: service_lb_vip
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Load Balancer VIP — create a virtual IP for application load balancing"
+
+  scope:
+    devices:
+      - lon-load-balancer-01
+
+  service:
+    load_balancer:
+      vip:
+        name: VIP-WEBAPP-PROD
+        description: "Production web application VIP"
+        virtual_ip: "10.100.10.100"
+        port: 443
+        protocol: tcp
+        algorithm: round-robin    # round-robin | least-connections | ip-hash
+      pool:
+        name: POOL-WEBAPP-PROD
+        members:
+          - ip: "10.100.0.10"
+            port: 8443
+            weight: 1
+          - ip: "10.100.0.11"
+            port: 8443
+            weight: 1
+          - ip: "10.100.0.12"
+            port: 8443
+            weight: 1
+      health_check:
+        type: https
+        path: "/health"
+        interval_secs: 10
+        timeout_secs: 5
+        threshold: 3
+      ssl_offload: true
+      certificate_ref: vault:pki/acme-corp-webapp-cert
+
+  policy:
+    compliance: NONE
+    encryption: tls
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify VIP configuration"
+        expected:
+          - config_snippet: "VIP-WEBAPP-PROD"

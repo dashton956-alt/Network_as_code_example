@@ -1,0 +1,51 @@
+intent:
+  id: template-6pe-6vpe-001
+  type: 6pe_6vpe
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "6PE / 6VPE — carry IPv6 prefixes over IPv4/MPLS backbone"
+
+  scope:
+    roles:
+      - pe-router
+
+  mpls:
+    sixpe:
+      mode: 6vpe                  # 6pe (global IPv6) | 6vpe (IPv6 VPN)
+      vrf_name: ACME-IPV6-VPN
+      rd: "65001:600"
+      rt_import:
+        - "65001:600"
+      rt_export:
+        - "65001:600"
+      bgp:
+        as_number: 65001
+        address_family: vpnv6
+        neighbors:
+          - ip: "10.255.0.2"
+            remote_as: 65001
+            description: "6VPE iBGP peer"
+            update_source: Loopback0
+            activate_af: vpnv6
+      ce_interface: GigabitEthernet0/3
+      ce_ipv6: "2001:db8:ce1::1/64"
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify VPNv6 address family activated"
+        expected:
+          - config_snippet: "address-family vpnv6"

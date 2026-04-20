@@ -1,0 +1,46 @@
+intent:
+  id: template-qos-shape-001
+  type: qos_shape
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Traffic Shaping — shape egress traffic to match contracted WAN bandwidth"
+
+  scope:
+    devices:
+      - branch-lon-rtr-01
+
+  qos:
+    shaping:
+      policy_name: SHAPE-WAN-EGRESS
+      classes:
+        - name: SHAPE-ALL
+          match: any
+          shape:
+            rate_mbps: 50          # shape to 50 Mbps contracted rate
+            burst_kbytes: 100
+            adaptive: false        # set true for BECN/ECN adaptive shaping
+          child_policy: QOS-EGRESS-WAN  # nested CBWFQ policy
+      apply:
+        - interface: GigabitEthernet0/0
+          direction: out
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify shaping policy on WAN interface"
+        expected:
+          - config_snippet: "policy-map SHAPE-WAN-EGRESS"
+          - config_snippet: "shape average"

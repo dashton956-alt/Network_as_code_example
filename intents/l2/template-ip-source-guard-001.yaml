@@ -1,0 +1,42 @@
+intent:
+  id: template-ip-source-guard-001
+  type: ip_source_guard
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "IP Source Guard — filter traffic based on DHCP snooping binding table"
+
+  scope:
+    roles:
+      - access-switch
+
+  ip_source_guard:
+    apply_to_access_ports: true
+    filter: ip-mac               # ip | ip-mac
+    vlans:
+      - 100
+      - 101
+    static_bindings:
+      - ip: "10.10.100.254"
+        mac: "00:1A:2B:3C:4D:5E"
+        vlan: 100
+        interface: GigabitEthernet0/48
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify IP source guard applied to access ports"
+        expected:
+          - config_snippet: "ip verify source"

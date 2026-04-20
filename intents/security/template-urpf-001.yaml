@@ -1,0 +1,43 @@
+intent:
+  id: template-urpf-001
+  type: urpf
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "uRPF — enable Unicast Reverse Path Forwarding to prevent IP spoofing"
+
+  scope:
+    roles:
+      - core-router
+      - pe-router
+
+  security:
+    urpf:
+      interfaces:
+        - name: GigabitEthernet0/0
+          mode: strict              # strict | loose
+          description: "Customer-facing — strict mode"
+          allow_default: false
+        - name: GigabitEthernet0/1
+          mode: loose
+          description: "Transit link — loose mode for asymmetric routing"
+          allow_default: true
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify uRPF enabled on interfaces"
+        expected:
+          - config_snippet: "ip verify unicast source reachable-via"

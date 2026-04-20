@@ -1,0 +1,52 @@
+intent:
+  id: template-wireless-flexconnect-001
+  type: wireless_flexconnect
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "FlexConnect / Local Switching — configure local 802.11 switching for branch APs"
+
+  scope:
+    sites:
+      - branch-lon
+    roles:
+      - wireless-controller
+
+  wireless:
+    flexconnect:
+      mode: local-switching        # local-switching | central-switching
+      resilient: true              # allow local auth if WAN fails
+      auth_down_vlan: 999          # VLAN when WAN controller unreachable
+      ssid_vlan_map:
+        - ssid: ACME-CORP-STAFF
+          vlan: 50
+          switching: local
+        - ssid: ACME-CORP-GUEST
+          vlan: 999
+          switching: local
+      acl_pre_auth: FLEXCONNECT-PREAUTH-ACL
+      local_auth:
+        enabled: true
+        radius:
+          ip: "10.20.0.10"
+          key_ref: vault:secret/radius/branch-wireless-key
+          local_fallback: false
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify FlexConnect local switching"
+        expected:
+          - config_snippet: "flexconnect"

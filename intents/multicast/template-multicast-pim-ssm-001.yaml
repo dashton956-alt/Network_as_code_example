@@ -1,0 +1,44 @@
+intent:
+  id: template-multicast-pim-ssm-001
+  type: multicast_pim_ssm
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "PIM SSM — configure PIM Source-Specific Multicast for IPTV / media delivery"
+
+  scope:
+    sites:
+      - dc-east
+    roles:
+      - core-router
+
+  multicast:
+    pim:
+      mode: ssm
+      ssm_range: "232.0.0.0/8"   # IANA SSM address range
+      interfaces:
+        - name: GigabitEthernet0/0
+          enabled: true
+        - name: GigabitEthernet0/1
+          enabled: true
+      igmp_version: 3             # IGMPv3 required for SSM
+      ip_multicast_routing: true
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify PIM SSM range configured"
+        expected:
+          - config_snippet: "ip pim ssm range 232.0.0.0"

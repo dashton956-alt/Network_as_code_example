@@ -1,0 +1,43 @@
+intent:
+  id: template-reachability-floating-001
+  type: reachability_floating
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Floating Static / Backup Route — configure high-AD static routes as backup paths"
+
+  scope:
+    devices:
+      - lon-edge-rtr-01
+
+  reachability:
+    floating_static:
+      routes:
+        - destination: "0.0.0.0/0"
+          next_hop: "198.51.100.1"
+          admin_distance: 200       # higher than BGP (20/200) and OSPF (110)
+          description: "Floating default via secondary ISP when primary BGP fails"
+          track: null
+        - destination: "10.0.0.0/8"
+          next_hop: "192.168.10.1"
+          admin_distance: 250
+          description: "Floating backup route to corporate LAN"
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify floating static routes"
+        expected:
+          - config_snippet: "ip route 0.0.0.0 0.0.0.0 198.51.100.1 200"

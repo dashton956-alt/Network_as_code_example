@@ -1,0 +1,53 @@
+intent:
+  id: template-connectivity-001
+  type: connectivity
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Connectivity — generic site-to-site connectivity provisioning (legacy type)"
+
+  scope:
+    sites:
+      - branch-lon
+      - dc-east
+
+  connectivity:
+    type: layer3-routed
+    description: "Branch London to DC East connectivity"
+    transport: mpls               # mpls | internet | direct
+    topology: hub-spoke
+    hub_site: dc-east
+    spoke_site: branch-lon
+    addressing:
+      hub_ip: "10.1.0.1/30"
+      spoke_ip: "10.1.0.2/30"
+    routing:
+      protocol: ospf
+      process_id: 1
+      area: "0.0.0.1"
+    sla:
+      latency_max_ms: 10
+      jitter_max_ms: 5
+      availability_pct: 99.9
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: both
+    schedule: "*/5 * * * *"
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmPing
+        label: "Verify hub to spoke connectivity"
+        expected:
+          - source: "10.1.0.1"
+            destination: "10.1.0.2"
+            success: true

@@ -1,0 +1,51 @@
+intent:
+  id: template-isis-001
+  type: isis
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "IS-IS — configure IS-IS routing on core SP routers"
+
+  scope:
+    roles:
+      - p-router
+      - pe-router
+
+  routing:
+    protocol: isis
+    process_id: 1
+    net_address: "49.0001.0100.2550.0001.00"  # Area 1, system-id from loopback (10.255.0.1)
+    level: 2                     # 1 | 2 | level-1-2
+    metric_style: wide
+    passive_interfaces:
+      - Loopback0
+    interfaces:
+      - name: Ethernet1
+        type: point-to-point
+        metric: 10
+        authentication:
+          mode: md5
+          key_ref: vault:secret/isis/auth-key
+      - name: Ethernet2
+        type: point-to-point
+        metric: 10
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: both
+    schedule: "*/30 * * * *"
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify IS-IS configuration"
+        expected:
+          - config_snippet: "router isis 1"

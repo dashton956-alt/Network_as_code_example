@@ -1,0 +1,55 @@
+intent:
+  id: template-sdwan-overlay-001
+  type: sdwan_overlay
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "SD-WAN Overlay — onboard branch site to SD-WAN fabric via vManage"
+
+  scope:
+    devices:
+      - branch-lon-vedge-01
+
+  sdwan:
+    controller: vmanage
+    overlay:
+      site_id: 100
+      system_ip: "10.99.100.1"
+      organization: "acme-corp"
+      vbond: "203.0.113.50"
+      transport_interfaces:
+        - name: GigabitEthernet0/0
+          color: biz-internet     # biz-internet | mpls | lte | public-internet
+          nat: true
+          restrict: false
+        - name: GigabitEthernet0/1
+          color: mpls
+          nat: false
+          restrict: true
+      service_vrf:
+        - vrf: 1
+          vpn: 10
+          interface: GigabitEthernet0/2
+      omp:
+        send_path_limit: 4
+        receive_path_limit: 4
+
+  policy:
+    compliance: NONE
+    encryption: ipsec
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: both
+    schedule: "*/10 * * * *"
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify SD-WAN tunnel interfaces"
+        expected:
+          - config_snippet: "tunnel-interface"

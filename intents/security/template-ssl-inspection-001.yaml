@@ -1,0 +1,49 @@
+intent:
+  id: template-ssl-inspection-001
+  type: ssl_inspection
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "SSL/TLS Inspection — decrypt and inspect outbound HTTPS at the internet edge"
+
+  scope:
+    devices:
+      - lon-edge-fw-01
+
+  security:
+    ssl_inspection:
+      mode: decrypt-resign           # decrypt-resign | decrypt-forward | block
+      certificate:
+        ca_cert_ref: vault:pki/acme-corp-inspect-ca
+        subject_cn: "acme-corp-ssl-inspect"
+      excluded_categories:
+        - banking
+        - healthcare
+        - government
+      excluded_destinations:
+        - "update.microsoft.com"
+        - "ocsp.digicert.com"
+      cipher_suites:
+        - TLS_AES_128_GCM_SHA256
+        - TLS_AES_256_GCM_SHA384
+      minimum_tls_version: "1.2"
+      failed_decrypt_action: block  # block | allow
+
+  policy:
+    compliance: NONE
+    encryption: tls-inspection
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify SSL profile applied"
+        expected:
+          - config_snippet: "ssl-proxy"

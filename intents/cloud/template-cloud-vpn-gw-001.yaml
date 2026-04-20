@@ -1,0 +1,60 @@
+intent:
+  id: template-cloud-vpn-gw-001
+  type: cloud_vpn_gw
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Cloud VPN Gateway — configure IPSec VPN gateway between on-prem and cloud VPC"
+
+  scope:
+    devices:
+      - cloud-aws-lon-vpn-01     # virtual device representing VPN gateway
+
+  cloud:
+    provider: aws                  # aws | azure | gcp
+    region: eu-west-2
+    vpn_gateway:
+      name: acme-corp-vgw-eu-west-2
+      vpc_id: vpc-0a1b2c3d4e5f
+      type: ipsec.1
+      tunnels:
+        - name: tunnel1
+          outside_ip: "203.0.113.10"   # AWS side
+          inside_cidr: "169.254.10.0/30"
+          psk_ref: vault:secret/aws-vpn/tunnel1-psk
+          ike:
+            version: 2
+            encryption: AES256
+            integrity: SHA384
+            dh_group: 20
+          ipsec:
+            encryption: AES256
+            integrity: SHA256
+            pfs_group: 20
+          bgp:
+            asn: 64512
+            neighbor_ip: "169.254.10.1"
+        - name: tunnel2
+          outside_ip: "203.0.113.11"
+          inside_cidr: "169.254.11.0/30"
+          psk_ref: vault:secret/aws-vpn/tunnel2-psk
+
+  policy:
+    compliance: NONE
+    encryption: ipsec
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: both
+    schedule: "*/15 * * * *"
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify VPN gateway tunnel configured"
+        expected:
+          - config_snippet: "vpn-gateway"

@@ -1,0 +1,53 @@
+intent:
+  id: template-wireless-dot1x-001
+  type: wireless_dot1x
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "802.1X Wireless — configure WPA2/WPA3 Enterprise with RADIUS authentication"
+
+  scope:
+    sites:
+      - campus-lon
+    roles:
+      - wireless-controller
+
+  wireless:
+    dot1x:
+      ssid: ACME-CORP-STAFF
+      security:
+        type: wpa3-enterprise       # wpa2-enterprise | wpa3-enterprise
+        eap_type: peap-mschapv2     # peap-mschapv2 | tls | ttls
+        pmf: required               # required | optional | disabled
+      radius:
+        primary:
+          ip: "10.1.1.10"
+          port: 1812
+          key_ref: vault:secret/radius/wireless-key
+          acct_port: 1813
+        secondary:
+          ip: "10.1.1.11"
+          port: 1812
+          key_ref: vault:secret/radius/wireless-key
+      nas_id: "campus-lon-wlc"
+      session_timeout: 28800
+      reauthentication: true
+
+  policy:
+    compliance: NONE
+    encryption: wpa3
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify 802.1X RADIUS config on SSID"
+        expected:
+          - config_snippet: "wpa3"

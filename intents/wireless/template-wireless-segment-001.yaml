@@ -1,0 +1,61 @@
+intent:
+  id: template-wireless-segment-001
+  type: wireless_segment
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Wireless Segmentation — isolate IoT and guest clients from corporate network"
+
+  scope:
+    sites:
+      - campus-lon
+    roles:
+      - wireless-controller
+
+  wireless:
+    segmentation:
+      segments:
+        - name: CORP-STAFF
+          ssid: ACME-CORP-STAFF
+          vlan: 50
+          can_reach:
+            - CORP-STAFF
+          cannot_reach:
+            - GUEST
+            - IOT
+        - name: GUEST
+          ssid: ACME-CORP-GUEST
+          vlan: 999
+          peer_to_peer_block: true
+          can_reach: []           # internet only via breakout VLAN
+          cannot_reach:
+            - CORP-STAFF
+            - IOT
+        - name: IOT
+          ssid: ACME-CORP-IOT
+          vlan: 60
+          peer_to_peer_block: true
+          can_reach:
+            - IOT
+          cannot_reach:
+            - CORP-STAFF
+            - GUEST
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify SSID isolation configured"
+        expected:
+          - config_snippet: "peer-blocking"

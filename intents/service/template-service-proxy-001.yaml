@@ -1,0 +1,52 @@
+intent:
+  id: template-service-proxy-001
+  type: service_proxy
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Proxy / Service Insertion — steer traffic through a security proxy or service chain"
+
+  scope:
+    devices:
+      - lon-edge-rtr-01
+
+  service:
+    proxy:
+      type: explicit              # explicit | transparent
+      servers:
+        - host: "10.1.3.10"
+          port: 8080
+          description: "Primary proxy server"
+          protocol: http
+        - host: "10.1.3.11"
+          port: 8080
+          description: "Secondary proxy server"
+      bypass_domains:
+        - "acme-corp.internal"
+        - "update.microsoft.com"
+        - "login.microsoftonline.com"
+      ssl_bump: false             # set true to enable SSL interception
+      service_chaining:
+        enabled: false
+        inspection_platform: null  # e.g. Firepower, Palo Alto NGFW
+      pac_file:
+        url: "http://wpad.acme-corp.internal/proxy.pac"
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: false            # proxy config is pushed to proxy platform, not network device
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify WCCP or policy-based redirect for proxy"
+        expected:
+          - config_snippet: "ip wccp"

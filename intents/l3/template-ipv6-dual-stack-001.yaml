@@ -1,0 +1,45 @@
+intent:
+  id: template-ipv6-dual-stack-001
+  type: ipv6_dual_stack
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "IPv6 Dual-Stack Interface — configure both IPv4 and IPv6 on access and core interfaces"
+
+  scope:
+    sites:
+      - dc-east
+    roles:
+      - core-router
+
+  interfaces:
+    - name: Loopback0
+      ipv4_address: "10.255.0.1/32"
+      ipv6_address: "2001:db8:ffff::1/128"
+      ipv6_enable: true
+    - name: GigabitEthernet0/0
+      description: "Dual-stack uplink"
+      ipv4_address: "10.0.0.1/30"
+      ipv6_address: "2001:db8:10::/127"
+      ipv6_enable: true
+      ipv6_nd_suppress_ra: true   # suppress router advertisements on p2p links
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify IPv6 enabled on interfaces"
+        expected:
+          - config_snippet: "ipv6 address 2001:db8:ffff::1/128"
+          - config_snippet: "ipv6 enable"

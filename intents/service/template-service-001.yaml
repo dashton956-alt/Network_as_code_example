@@ -1,0 +1,46 @@
+intent:
+  id: template-service-001
+  type: service
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Service — generic network service provisioning (legacy type)"
+
+  scope:
+    devices:
+      - lon-edge-rtr-01
+
+  service:
+    name: ACME-CORP-INTERNET-SERVICE
+    type: internet-access
+    bandwidth_mbps: 1000
+    sla:
+      availability_pct: 99.9
+      rtt_max_ms: 20
+      jitter_max_ms: 5
+    interfaces:
+      - GigabitEthernet0/0
+    tags:
+      - production
+      - internet
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: false
+
+  verification:
+    level: nuts
+    trigger: both
+    schedule: "*/5 * * * *"
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmPing
+        label: "Verify internet service reachability"
+        expected:
+          - destination: "8.8.8.8"
+            success: true

@@ -1,0 +1,69 @@
+intent:
+  id: template-reachability-ip-sla-001
+  type: reachability_ip_sla
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "IP SLA Probe — configure ICMP echo and UDP jitter probes for path monitoring"
+
+  scope:
+    devices:
+      - lon-edge-rtr-01
+
+  reachability:
+    ip_sla:
+      probes:
+        - id: 1
+          type: icmp-echo
+          target: "8.8.8.8"
+          source_interface: GigabitEthernet0/0
+          frequency_secs: 60
+          timeout_ms: 5000
+          description: "Internet reachability via primary ISP"
+        - id: 2
+          type: icmp-echo
+          target: "8.8.4.4"
+          source_interface: GigabitEthernet0/1
+          frequency_secs: 60
+          timeout_ms: 5000
+          description: "Internet reachability via secondary ISP"
+        - id: 10
+          type: udp-jitter
+          target: "10.255.0.2"
+          port: 5000
+          frequency_secs: 30
+          packet_count: 10
+          packet_size: 160          # VoIP-like packet size
+          description: "Voice quality probe to DC East"
+      schedules:
+        - sla_id: 1
+          start: now
+          life: forever
+          ageout: never
+        - sla_id: 2
+          start: now
+          life: forever
+          ageout: never
+        - sla_id: 10
+          start: now
+          life: forever
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify IP SLA probes configured"
+        expected:
+          - config_snippet: "ip sla 1"
+          - config_snippet: "ip sla schedule 1"

@@ -1,0 +1,51 @@
+intent:
+  id: template-nat-pat-001
+  type: nat_pat
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "NAT / PAT — configure source NAT and PAT for Internet-bound traffic"
+
+  scope:
+    devices:
+      - lon-edge-rtr-01
+
+  wan:
+    nat_pat:
+      dynamic_nat:
+        - name: NAT-INSIDE-TO-OUTSIDE
+          inside_acl: NAT-INSIDE-HOSTS
+          outside_interface: GigabitEthernet0/0
+          pat: true               # overload = PAT
+          pool: null              # null = use interface IP
+      static_nat:
+        - inside: "10.100.0.10"
+          outside: "203.0.113.100"
+          description: "Web server — static NAT"
+          protocol: tcp
+          port: 443
+      inside_interfaces:
+        - GigabitEthernet0/1
+        - GigabitEthernet0/2
+      outside_interfaces:
+        - GigabitEthernet0/0
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify NAT overload configured"
+        expected:
+          - config_snippet: "ip nat inside source list NAT-INSIDE-HOSTS interface"
+          - config_snippet: "ip nat inside"

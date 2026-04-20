@@ -1,0 +1,56 @@
+intent:
+  id: template-sdwan-qos-001
+  type: sdwan_qos
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "SD-WAN QoS Policy — define queue scheduling and DSCP remarking on WAN VPNs"
+
+  scope:
+    devices:
+      - branch-lon-vedge-01
+
+  sdwan:
+    qos:
+      policy_name: QOS-BRANCH-WAN
+      scheduler:
+        - queue: 0
+          bandwidth_pct: 30
+          dscp: EF
+          description: "Voice"
+          scheduling: priority
+        - queue: 1
+          bandwidth_pct: 20
+          dscp: AF41
+          description: "Video conferencing"
+          scheduling: weighted-round-robin
+        - queue: 2
+          bandwidth_pct: 30
+          dscp: AF21
+          description: "Business data"
+          scheduling: weighted-round-robin
+        - queue: 3
+          bandwidth_pct: 20
+          dscp: BE
+          description: "Best effort"
+          scheduling: weighted-round-robin
+      shaping_rate_mbps: 50       # shape egress to WAN bandwidth
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify QoS policy attached"
+        expected:
+          - config_snippet: "qos-map"

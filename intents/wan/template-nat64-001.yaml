@@ -1,0 +1,44 @@
+intent:
+  id: template-nat64-001
+  type: nat64
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "NAT64 — allow IPv6-only clients to reach IPv4 Internet services"
+
+  scope:
+    devices:
+      - lon-edge-rtr-01
+
+  wan:
+    nat64:
+      prefix: "64:ff9b::/96"     # well-known NAT64 prefix
+      pool:
+        name: NAT64-POOL
+        start: "203.0.113.10"
+        end: "203.0.113.20"
+      inside_interface: GigabitEthernet0/1
+      outside_interface: GigabitEthernet0/0
+      stateful: true
+      dns64:
+        enabled: true
+        prefix: "64:ff9b::/96"
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify NAT64 prefix configured"
+        expected:
+          - config_snippet: "nat64 prefix stateful 64:ff9b::/96"

@@ -1,0 +1,41 @@
+intent:
+  id: template-wireless-band-steer-001
+  type: wireless_band_steer
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Band Steering — guide dual-band clients to 5 GHz for better performance"
+
+  scope:
+    sites:
+      - campus-lon
+    roles:
+      - wireless-controller
+
+  wireless:
+    band_steering:
+      ssid: ACME-CORP-STAFF
+      enabled: true
+      mode: aggressive            # aggressive | balanced
+      rssi_threshold_dbm: -65     # client must have at least -65 dBm on 5 GHz
+      probe_suppression: true     # suppress 2.4 GHz probe responses if client capable of 5 GHz
+      grace_period_secs: 30       # time before moving a client back after failure
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify band steering enabled"
+        expected:
+          - config_snippet: "band-select"

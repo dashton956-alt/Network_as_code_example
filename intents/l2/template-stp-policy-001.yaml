@@ -1,0 +1,43 @@
+intent:
+  id: template-stp-policy-001
+  type: stp_policy
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Spanning Tree Policy — set STP mode and port-fast/BPDU-guard on all access switches"
+
+  scope:
+    roles:
+      - access-switch
+
+  stp:
+    mode: rapid-pvst             # rapid-pvst | mstp | rstp
+    root_vlans:
+      - 1-999
+    portfast_default: true
+    bpduguard_default: true
+    loopguard_default: false
+    edge_ports:
+      - interface: Ethernet1
+        bpduguard: true
+      - interface: Ethernet2
+        bpduguard: true
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify STP mode in running config"
+        expected:
+          - config_snippet: "spanning-tree mode rapid-pvst"

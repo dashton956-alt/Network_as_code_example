@@ -1,0 +1,49 @@
+intent:
+  id: template-ldp-001
+  type: ldp
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "LDP — configure Label Distribution Protocol on MPLS core"
+
+  scope:
+    roles:
+      - p-router
+      - pe-router
+
+  mpls:
+    ldp:
+      router_id: "10.255.0.1"
+      enabled: true
+      interfaces:
+        - GigabitEthernet0/0
+        - GigabitEthernet0/1
+      igp_sync: true              # sync LDP with IGP (OSPF/ISIS)
+      graceful_restart: true
+      session_protection: true
+      label_range:
+        min: 16
+        max: 1048575
+      targeted_peers:             # for pseudowire sessions
+        - "10.255.0.4"
+        - "10.255.0.5"
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify MPLS LDP enabled"
+        expected:
+          - config_snippet: "mpls ldp"
+          - config_snippet: "mpls ip"

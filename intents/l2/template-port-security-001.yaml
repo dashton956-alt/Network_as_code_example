@@ -1,0 +1,41 @@
+intent:
+  id: template-port-security-001
+  type: port_security
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Port Security / MAC Limit — restrict the number of MAC addresses per access port"
+
+  scope:
+    roles:
+      - access-switch
+
+  port_security:
+    apply_to_all_access_ports: true
+    max_mac_addresses: 3
+    violation_action: restrict    # protect | restrict | shutdown
+    sticky_mac: true
+    aging:
+      enabled: true
+      time_minutes: 60
+      type: absolute              # absolute | inactivity
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify port-security enabled on access ports"
+        expected:
+          - config_snippet: "switchport port-security maximum 3"
+          - config_snippet: "switchport port-security violation restrict"

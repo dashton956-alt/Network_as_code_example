@@ -1,0 +1,57 @@
+intent:
+  id: template-cloud-route-table-001
+  type: cloud_route_table
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Cloud Route Table — manage AWS VPC route tables for traffic steering"
+
+  scope:
+    devices:
+      - cloud-aws-lon-rt-01      # virtual device for cloud route table management
+
+  cloud:
+    provider: aws
+    region: eu-west-2
+    route_tables:
+      - name: rtb-private-app
+        vpc_id: vpc-0a1b2c3d4e5f
+        associations:
+          - subnet-2a3b4c5d       # private app subnet
+          - subnet-3a4b5c6d       # private db subnet
+        routes:
+          - destination: "0.0.0.0/0"
+            target: nat-gateway   # route all egress through NAT
+            target_id: nat-012345
+          - destination: "10.0.0.0/8"
+            target: transit-gateway
+            target_id: tgw-012345
+      - name: rtb-public
+        vpc_id: vpc-0a1b2c3d4e5f
+        associations:
+          - subnet-0a1b2c3d       # public DMZ subnet
+        routes:
+          - destination: "0.0.0.0/0"
+            target: internet-gateway
+          - destination: "10.0.0.0/8"
+            target: transit-gateway
+            target_id: tgw-012345
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify route table entries"
+        expected:
+          - config_snippet: "rtb-private-app"

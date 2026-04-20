@@ -1,0 +1,40 @@
+intent:
+  id: template-qinq-001
+  type: qinq
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "QinQ / Double Tagging — provider-edge port encapsulating customer VLANs"
+
+  scope:
+    devices:
+      - pe-router-lon-01
+
+  qinq:
+    interface: GigabitEthernet0/0/1
+    description: "QinQ uplink to customer CPE"
+    outer_vlan: 200               # service VLAN (S-VLAN)
+    dot1q_tunnel_ethertype: "0x88A8"
+    customer_vlans:
+      - 10
+      - 20
+      - 30
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify QinQ / dot1q tunnel configuration"
+        expected:
+          - config_snippet: "dot1q tunnel"

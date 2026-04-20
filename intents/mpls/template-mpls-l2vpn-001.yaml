@@ -1,0 +1,45 @@
+intent:
+  id: template-mpls-l2vpn-001
+  type: mpls_l2vpn
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "MPLS L2VPN / VPLS — configure VPLS instance to bridge Layer 2 across MPLS core"
+
+  scope:
+    roles:
+      - pe-router
+
+  mpls:
+    l2vpn:
+      vpls:
+        vpn_id: 100
+        vpn_name: ACME-VPLS-100
+        encapsulation: mpls
+        bridge_domain: 100
+        peers:
+          - "10.255.0.2"           # remote PE loopback
+          - "10.255.0.3"
+        customer_interfaces:
+          - interface: GigabitEthernet0/2
+            encapsulation_vlan: 100
+            mode: trunk
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify VPLS instance configured"
+        expected:
+          - config_snippet: "l2 vpn xconnect context ACME-VPLS-100"

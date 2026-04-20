@@ -1,0 +1,48 @@
+intent:
+  id: template-reachability-001
+  type: reachability
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Reachability — verify end-to-end network reachability between sites or segments"
+
+  scope:
+    sites:
+      - branch-lon
+      - dc-east
+
+  reachability:
+    checks:
+      - source: "10.20.0.1"        # branch network gateway
+        destinations:
+          - "10.100.0.1"           # DC East servers
+          - "10.100.0.2"
+          - "8.8.8.8"              # Internet
+      - source: "10.100.0.1"
+        destinations:
+          - "10.20.0.1"            # return path
+    protocol: icmp                 # icmp | tcp | udp
+    timeout_secs: 5
+    expected_state: reachable
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: false            # reachability checks — no config changes
+
+  verification:
+    level: nuts
+    trigger: both
+    schedule: "*/5 * * * *"
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmPing
+        label: "Verify end-to-end reachability"
+        expected:
+          - source: 10.20.0.1
+            destination: 10.100.0.1
+            success: true

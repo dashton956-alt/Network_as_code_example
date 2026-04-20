@@ -1,0 +1,46 @@
+intent:
+  id: template-anycast-gateway-001
+  type: anycast_gateway
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Anycast Gateway — configure distributed anycast gateway on all VXLAN leaf switches"
+
+  scope:
+    sites:
+      - dc-east
+    roles:
+      - leaf-switch
+
+  dc:
+    anycast_gateway:
+      mac: "00:00:00:00:00:01"    # shared virtual MAC across all leaves
+      svls:
+        - vlan: 100
+          ip: "10.100.0.1/24"
+          vni: 10100
+        - vlan: 101
+          ip: "10.101.0.1/24"
+          vni: 10101
+        - vlan: 200
+          ip: "10.200.0.1/24"
+          vni: 10200
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify anycast gateway MAC configured"
+        expected:
+          - config_snippet: "ip virtual-router mac-address 00:00:00:00:00:01"

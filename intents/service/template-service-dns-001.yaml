@@ -1,0 +1,53 @@
+intent:
+  id: template-service-dns-001
+  type: service_dns
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "DNS Record — provision DNS A/CNAME records in internal zone"
+
+  scope:
+    devices:
+      - dns-server-01             # Infoblox / BIND / Azure DNS virtual device
+
+  service:
+    dns:
+      zone: "acme-corp.internal"
+      records:
+        - type: A
+          name: webapp-prod
+          fqdn: "webapp-prod.acme-corp.internal"
+          ip: "10.100.10.100"
+          ttl: 300
+        - type: A
+          name: api-prod
+          fqdn: "api-prod.acme-corp.internal"
+          ip: "10.100.10.101"
+          ttl: 300
+        - type: CNAME
+          name: www
+          target: "webapp-prod.acme-corp.internal"
+          ttl: 300
+        - type: PTR
+          name: "100.10.100.10.in-addr.arpa"
+          target: "webapp-prod.acme-corp.internal."
+          ttl: 300
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: false            # DNS record — no device config
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify DNS record provisioned"
+        expected:
+          - config_snippet: "webapp-prod"

@@ -1,0 +1,46 @@
+intent:
+  id: template-dai-001
+  type: dai
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Dynamic ARP Inspection — validate ARP packets against DHCP snooping bindings"
+
+  scope:
+    roles:
+      - access-switch
+
+  dai:
+    enabled: true
+    vlans:
+      - 100
+      - 101
+      - 200
+    trusted_ports:
+      - interface: GigabitEthernet0/1
+        desc: "Uplink to distribution — trusted"
+    rate_limit_untrusted: 100    # ARP packets per second
+    rate_limit_trusted: 500
+    validation:
+      src_mac: true
+      dst_mac: true
+      ip: true
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify DAI enabled on server VLANs"
+        expected:
+          - config_snippet: "ip arp inspection vlan 100"

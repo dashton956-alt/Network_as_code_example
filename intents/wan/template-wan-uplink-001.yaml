@@ -1,0 +1,60 @@
+intent:
+  id: template-wan-uplink-001
+  type: wan_uplink
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "WAN Uplink / Dual ISP — configure dual Internet uplinks with floating static defaults"
+
+  scope:
+    devices:
+      - lon-edge-rtr-01
+
+  wan:
+    uplinks:
+      - name: ISP-PRIMARY
+        interface: GigabitEthernet0/0
+        description: "Primary uplink — Telia (AS 1299)"
+        type: fiber
+        bandwidth_mbps: 1000
+        ip_address: "203.0.113.2/30"
+        gateway: "203.0.113.1"
+        routing:
+          default_static:
+            admin_distance: 1
+            track: 10             # IP SLA track object
+      - name: ISP-SECONDARY
+        interface: GigabitEthernet0/1
+        description: "Secondary uplink — BT (AS 5400)"
+        type: xdsl
+        bandwidth_mbps: 100
+        ip_address: "198.51.100.2/30"
+        gateway: "198.51.100.1"
+        routing:
+          default_static:
+            admin_distance: 5     # higher AD = backup route
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: both
+    schedule: "*/5 * * * *"
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmInterfaces
+        label: "Verify WAN uplink interfaces are up"
+        expected:
+          - name: GigabitEthernet0/0
+            is_up: true
+            is_enabled: true
+          - name: GigabitEthernet0/1
+            is_up: true
+            is_enabled: true

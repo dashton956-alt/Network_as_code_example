@@ -1,0 +1,50 @@
+intent:
+  id: template-gre-tunnel-001
+  type: gre_tunnel
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "GRE Tunnel — configure GRE point-to-point tunnels for site interconnect"
+
+  scope:
+    devices:
+      - branch-lon-rtr-01
+
+  security:
+    gre:
+      tunnels:
+        - name: Tunnel10
+          description: "GRE to DC-East"
+          local: "203.0.113.2"   # branch public IP / source interface
+          remote: "203.0.113.10" # DC-East public IP
+          tunnel_ip: "100.64.0.1/30"
+          keepalive:
+            enabled: true
+            interval: 10
+            retries: 3
+          mtu: 1476               # 1500 - 24 (IP+GRE overhead)
+          routing:
+            protocol: static
+            routes:
+              - "10.0.0.0/8"
+                via: "100.64.0.2"
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify GRE tunnel interface"
+        expected:
+          - config_snippet: "interface Tunnel10"
+          - config_snippet: "tunnel mode gre ip"

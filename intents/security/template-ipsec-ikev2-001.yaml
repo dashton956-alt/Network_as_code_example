@@ -1,0 +1,58 @@
+intent:
+  id: template-ipsec-ikev2-001
+  type: ipsec_ikev2
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "IPSec with IKEv2 — configure IKEv2-based IPSec tunnel to cloud or partner"
+
+  scope:
+    devices:
+      - lon-edge-rtr-01
+
+  security:
+    ipsec_ikev2:
+      local_endpoint: "203.0.113.1"
+      remote_endpoint: "198.51.100.1"
+      description: "IKEv2 IPSec to cloud gateway"
+      ikev2:
+        proposal:
+          encryption: aes-gcm-256
+          integrity: sha256
+          dh_group: 20          # ECDH P-384
+        policy:
+          local_id: "203.0.113.1"
+          remote_id: "198.51.100.1"
+        authentication:
+          method: pre-share
+          key_ref: vault:secret/ipsec/ikev2-psk
+      ipsec:
+        transform_set:
+          encryption: aes-256-gcm
+          integrity: null         # not needed with AEAD
+        pfs_group: 20
+        lifetime_seconds: 3600
+      traffic:
+        local_subnet: "10.0.0.0/8"
+        remote_subnet: "172.16.0.0/12"
+      tunnel_interface: Tunnel201
+
+  policy:
+    compliance: NONE
+    encryption: ipsec
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify IKEv2 profile configured"
+        expected:
+          - config_snippet: "crypto ikev2 profile"
+          - config_snippet: "crypto ikev2 proposal"

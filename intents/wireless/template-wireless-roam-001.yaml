@@ -1,0 +1,47 @@
+intent:
+  id: template-wireless-roam-001
+  type: wireless_roam
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Fast Roaming / 802.11r — enable FT (Fast Transition) for seamless Wi-Fi roaming"
+
+  scope:
+    sites:
+      - campus-lon
+    roles:
+      - wireless-controller
+
+  wireless:
+    fast_roaming:
+      ssid: ACME-CORP-STAFF
+      ft:
+        enabled: true
+        mode: over-air             # over-air | over-ds (over Distribution System)
+        ft_psk: false             # false = 802.1X (Enterprise FT)
+        r0kh_timeout: 1800
+        reassociation_timer_ms: 5000
+      pmkid_caching: true         # PMK caching for faster re-auth
+      okc: true                   # Opportunistic Key Caching
+      dot11r: true
+      dot11k: true                # 802.11k — neighbor reports for guided roaming
+      dot11v: true                # 802.11v — BSS transition management
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify 802.11r FT enabled"
+        expected:
+          - config_snippet: "ft over-air"

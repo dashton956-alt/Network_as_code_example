@@ -1,0 +1,56 @@
+intent:
+  id: template-ospf-001
+  type: ospf
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "OSPF Adjacency / Area — configure OSPF process and area assignments"
+
+  scope:
+    sites:
+      - dc-east
+    roles:
+      - distribution-switch
+      - core-router
+
+  routing:
+    protocol: ospf
+    process_id: 1
+    router_id: "10.255.0.1"
+    areas:
+      - area_id: "0.0.0.0"
+        type: backbone
+        networks:
+          - "10.255.0.0/24"    # loopbacks
+          - "10.10.0.0/24"     # core links
+      - area_id: "0.0.0.1"
+        type: stub
+        networks:
+          - "10.10.1.0/24"
+    passive_interfaces:
+      - Loopback0
+    authentication:
+      enabled: true
+      type: message-digest       # simple | message-digest
+    bfd: true
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: both
+    schedule: "*/30 * * * *"
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify OSPF process configuration"
+        expected:
+          - config_snippet: "router ospf 1"
+          - config_snippet: "router-id 10.255.0.1"

@@ -1,0 +1,56 @@
+intent:
+  id: template-bgp-ibgp-001
+  type: bgp_ibgp
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "BGP Peering (iBGP) — configure full-mesh or route-reflector iBGP sessions"
+
+  scope:
+    roles:
+      - pe-router
+
+  routing:
+    protocol: bgp
+    as_number: 65001
+    router_id: "10.255.0.1"
+    route_reflector: true         # true = this device is a route reflector
+    cluster_id: "10.255.0.1"
+    neighbors:
+      - ip: "10.255.0.2"
+        remote_as: 65001
+        description: "iBGP to PE2"
+        update_source: Loopback0
+        route_reflector_client: true
+        bfd: true
+      - ip: "10.255.0.3"
+        remote_as: 65001
+        description: "iBGP to PE3"
+        update_source: Loopback0
+        route_reflector_client: true
+        bfd: true
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: both
+    schedule: "*/30 * * * *"
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmBgpNeighbors
+        label: "Verify iBGP sessions established"
+        expected:
+          - peer: 10.255.0.2
+            remote_as: 65001
+            state: Established
+          - peer: 10.255.0.3
+            remote_as: 65001
+            state: Established

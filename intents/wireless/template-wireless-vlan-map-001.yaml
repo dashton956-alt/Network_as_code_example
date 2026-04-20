@@ -1,0 +1,52 @@
+intent:
+  id: template-wireless-vlan-map-001
+  type: wireless_vlan_map
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "VLAN to SSID Mapping — map SSIDs to their corresponding wired VLANs"
+
+  scope:
+    sites:
+      - campus-lon
+    roles:
+      - wireless-controller
+
+  wireless:
+    vlan_ssid_mapping:
+      - ssid: ACME-CORP-STAFF
+        vlan: 50
+        interface: management
+        description: "Staff SSID → VLAN 50 (corporate)"
+      - ssid: ACME-CORP-GUEST
+        vlan: 999
+        interface: guest
+        description: "Guest SSID → VLAN 999 (internet breakout)"
+      - ssid: ACME-CORP-IOT
+        vlan: 60
+        interface: iot
+        description: "IoT SSID → VLAN 60 (isolated)"
+      - ssid: ACME-CORP-VOICE
+        vlan: 50
+        qos_profile: VOICE-QOS
+        description: "Voice SSID → VLAN 50 with voice QoS"
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify SSID to VLAN mappings"
+        expected:
+          - config_snippet: "ACME-CORP-STAFF"
+          - config_snippet: "vlan 50"

@@ -1,0 +1,50 @@
+intent:
+  id: template-evpn-multisite-001
+  type: evpn_multisite
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Multi-Site EVPN — configure EVPN gateway/border leaf for DCI between DC East and DC West"
+
+  scope:
+    devices:
+      - dc-east-border-leaf-01
+      - dc-west-border-leaf-01
+
+  dc:
+    evpn_multisite:
+      site_id: 100               # unique per DC site
+      dci_link: Ethernet49
+      border_gateway: true
+      gateway_ip: "10.255.200.1"
+      remote_sites:
+        - site_id: 200
+          gateway_ip: "10.255.200.2"
+          dci_link_peer: "10.10.200.1"
+      reorigination:
+        mac_ip: true
+        prefix: true
+      rt_stitching:
+        import:
+          - "65001:100"
+        export:
+          - "65001:100"
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify multisite border gateway"
+        expected:
+          - config_snippet: "multisite border-gateway"

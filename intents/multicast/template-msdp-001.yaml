@@ -1,0 +1,49 @@
+intent:
+  id: template-msdp-001
+  type: msdp
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "MSDP — configure Multicast Source Discovery Protocol between two PIM domains"
+
+  scope:
+    devices:
+      - core-rtr-01               # RP in domain A
+
+  multicast:
+    msdp:
+      peers:
+        - ip: "10.255.0.200"
+          description: "MSDP peer — remote domain RP"
+          password_ref: vault:secret/msdp/peer-auth
+          sa_filter:
+            in: MSDP-SA-IN-FILTER
+            out: MSDP-SA-OUT-FILTER
+          default_peer: true
+      originator_id: "10.255.0.100"  # local RP loopback
+      mesh_groups:
+        - name: MSDP-MESH-GROUP
+          peers:
+            - "10.255.0.201"
+            - "10.255.0.202"
+      sa_cache_lifetime: 150
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: both
+    schedule: "*/30 * * * *"
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify MSDP peer configured"
+        expected:
+          - config_snippet: "ip msdp peer 10.255.0.200"

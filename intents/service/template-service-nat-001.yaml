@@ -1,0 +1,46 @@
+intent:
+  id: template-service-nat-001
+  type: service_nat
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "NAT Entry (Service) — add or remove a static NAT mapping at the service layer"
+
+  scope:
+    devices:
+      - lon-edge-rtr-01
+
+  service:
+    nat_entry:
+      - type: static
+        inside: "10.100.0.25"
+        outside: "203.0.113.25"
+        protocol: tcp
+        inside_port: 8443
+        outside_port: 443
+        description: "New API server — static NAT for HTTPS"
+        vrf: null
+      - type: static
+        inside: "10.100.0.26"
+        outside: "203.0.113.26"
+        protocol: all             # all = translate all protocols
+        description: "Mail server — static NAT"
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify static NAT entry"
+        expected:
+          - config_snippet: "ip nat inside source static tcp 10.100.0.25 8443 203.0.113.25 443"

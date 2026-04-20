@@ -1,0 +1,54 @@
+intent:
+  id: template-gre-over-ipsec-001
+  type: gre_over_ipsec
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "GRE over IPSec — encrypt GRE tunnel traffic using IPSec transport mode"
+
+  scope:
+    devices:
+      - branch-lon-rtr-01
+
+  security:
+    gre_over_ipsec:
+      gre_tunnel:
+        name: Tunnel20
+        local: "203.0.113.2"
+        remote: "203.0.113.10"
+        tunnel_ip: "100.64.1.1/30"
+        mtu: 1400
+      ipsec:
+        profile: GRE-IPSEC-PROFILE
+        crypto_map: GRE-CMAP
+        transform_set:
+          name: GRE-TSET
+          encryption: esp-aes-256
+          integrity: esp-sha-hmac
+        ikev1:
+          policy_number: 20
+          encryption: aes-256
+          hash: sha256
+          auth: pre-share
+          dh_group: 14
+          lifetime: 86400
+          key_ref: vault:secret/ipsec/gre-over-ipsec-psk
+
+  policy:
+    compliance: NONE
+    encryption: ipsec
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify GRE over IPSec tunnel"
+        expected:
+          - config_snippet: "tunnel protection ipsec profile GRE-IPSEC-PROFILE"

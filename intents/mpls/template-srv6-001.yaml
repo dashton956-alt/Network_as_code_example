@@ -1,0 +1,48 @@
+intent:
+  id: template-srv6-001
+  type: srv6
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "SRv6 — configure Segment Routing over IPv6 on core routers"
+
+  scope:
+    roles:
+      - p-router
+      - pe-router
+
+  mpls:
+    srv6:
+      locator:
+        name: ACME-LOC-1
+        prefix: "2001:db8:acme:100::/48"
+        behavior: uSID
+      encapsulation:
+        source: "2001:db8:ffff::1"   # SRv6 source address
+        hop_limit: 128
+      isis_srv6:
+        enabled: true
+        level: 2
+        metric: 1
+      bgp_srv6:
+        vpn_sid: "2001:db8:acme:100:40::"
+        service: l3vpn              # l3vpn | l2vpn
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify SRv6 locator configured"
+        expected:
+          - config_snippet: "segment-routing srv6"

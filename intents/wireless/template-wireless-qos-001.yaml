@@ -1,0 +1,50 @@
+intent:
+  id: template-wireless-qos-001
+  type: wireless_qos
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "QoS for Wireless — prioritise voice and video traffic over Wi-Fi"
+
+  scope:
+    sites:
+      - campus-lon
+    roles:
+      - wireless-controller
+
+  wireless:
+    qos:
+      ssid: ACME-CORP-STAFF
+      wmm: true                   # WMM / Wi-Fi Multimedia required
+      u_apsd: true                # Unscheduled Automatic Power Save Delivery
+      dscp_to_up_mapping:         # DSCP → WMM User Priority mapping
+        - dscp: EF
+          up: 6                   # Voice
+        - dscp: AF41
+          up: 5                   # Video
+        - dscp: AF21
+          up: 2                   # Best effort business
+        - dscp: BE
+          up: 0                   # Default
+      per_ssid_rate_limit:
+        upstream_kbps: 100000     # 100 Mbps per client upstream
+        downstream_kbps: 200000   # 200 Mbps per client downstream
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify WMM / QoS enabled on SSID"
+        expected:
+          - config_snippet: "wmm"

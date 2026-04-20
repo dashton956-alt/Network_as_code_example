@@ -1,0 +1,69 @@
+intent:
+  id: template-fw-rule-001
+  type: fw_rule
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Firewall Rule — define stateful firewall rules on next-gen firewall"
+
+  scope:
+    devices:
+      - lon-edge-fw-01
+
+  security:
+    firewall_rules:
+      - name: ALLOW-HTTPS-DMZ
+        sequence: 100
+        action: permit
+        protocol: tcp
+        source:
+          zone: OUTSIDE
+          address: any
+        destination:
+          zone: DMZ
+          address: "10.100.0.0/24"
+          port: 443
+        inspection: true
+        logging: true
+      - name: ALLOW-DNS-INTERNAL
+        sequence: 110
+        action: permit
+        protocol: udp
+        source:
+          zone: INSIDE
+          address: "10.0.0.0/8"
+        destination:
+          zone: INSIDE
+          address: "10.1.1.10/32"
+          port: 53
+      - name: DENY-ALL
+        sequence: 65535
+        action: deny
+        protocol: any
+        source:
+          zone: any
+          address: any
+        destination:
+          zone: any
+          address: any
+        logging: true
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify core firewall rules present"
+        expected:
+          - config_snippet: "ALLOW-HTTPS-DMZ"
+          - config_snippet: "DENY-ALL"

@@ -1,0 +1,64 @@
+intent:
+  id: template-copp-001
+  type: copp
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "CoPP (Control Plane Policing) — rate-limit traffic destined to the route processor"
+
+  scope:
+    all_tenant_devices: true
+
+  security:
+    copp:
+      policy_name: COPP-POLICY-DEFAULT
+      classes:
+        - name: CoPP-BGP
+          protocol: bgp
+          police_rate_kbps: 10000
+          police_burst_kb: 5000
+          conform_action: transmit
+          exceed_action: drop
+        - name: CoPP-OSPF
+          protocol: ospf
+          police_rate_kbps: 5000
+          police_burst_kb: 2000
+          conform_action: transmit
+          exceed_action: drop
+        - name: CoPP-ICMP
+          protocol: icmp
+          police_rate_kbps: 1000
+          police_burst_kb: 500
+          conform_action: transmit
+          exceed_action: drop
+        - name: CoPP-SNMP
+          protocol: snmp
+          police_rate_kbps: 500
+          police_burst_kb: 250
+          conform_action: transmit
+          exceed_action: drop
+        - name: CoPP-DEFAULT
+          police_rate_kbps: 100
+          police_burst_kb: 50
+          conform_action: transmit
+          exceed_action: drop
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify CoPP policy applied to control-plane"
+        expected:
+          - config_snippet: "control-plane"
+          - config_snippet: "service-policy input COPP-POLICY-DEFAULT"

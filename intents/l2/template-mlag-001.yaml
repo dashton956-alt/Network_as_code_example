@@ -1,0 +1,42 @@
+intent:
+  id: template-mlag-001
+  type: mlag
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "MLAG / MC-LAG — configure Multi-Chassis LAG pair for redundant server connectivity"
+
+  scope:
+    devices:
+      - dc-east-leaf-01
+      - dc-east-leaf-02
+
+  mlag:
+    domain_id: MLAG-DOMAIN-1
+    local_interface: Vlan4094
+    peer_address: "10.255.255.1"      # peer MLAG IP
+    peer_link: Port-Channel999
+    reload_delay: 300
+    reload_delay_non_mlag: 330
+    heartbeat_interval: 4000
+    keepalive_vrf: MGMT
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify MLAG domain configuration"
+        expected:
+          - config_snippet: "mlag configuration"
+          - config_snippet: "domain-id MLAG-DOMAIN-1"

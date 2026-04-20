@@ -1,0 +1,56 @@
+intent:
+  id: template-wireless-rf-001
+  type: wireless_rf
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "RF Policy — configure radio frequency parameters for 2.4 GHz and 5 GHz radios"
+
+  scope:
+    sites:
+      - campus-lon
+    roles:
+      - wireless-controller
+
+  wireless:
+    rf_policy:
+      name: RF-POLICY-OFFICE
+      bands:
+        "2.4GHz":
+          enabled: true
+          channel_width: 20MHz    # 20MHz | 40MHz
+          tx_power:
+            min_dbm: 5
+            max_dbm: 20
+          channel_assignment: auto
+          data_rates:
+            min_rate_mbps: 12     # disable lower rates
+        "5GHz":
+          enabled: true
+          channel_width: 80MHz    # 20MHz | 40MHz | 80MHz | 160MHz
+          tx_power:
+            min_dbm: 8
+            max_dbm: 23
+          channel_assignment: auto
+          dfs: true
+          data_rates:
+            min_rate_mbps: 24
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify RF policy assigned"
+        expected:
+          - config_snippet: "rf-profile RF-POLICY-OFFICE"

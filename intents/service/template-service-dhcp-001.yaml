@@ -1,0 +1,61 @@
+intent:
+  id: template-service-dhcp-001
+  type: service_dhcp
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "DHCP Pool / Scope — provision DHCP scope on DHCP server for a new subnet"
+
+  scope:
+    devices:
+      - dhcp-server-01            # virtual device representing DHCP service
+
+  service:
+    dhcp:
+      pools:
+        - name: SUBNET-SERVERS-PROD
+          subnet: "10.100.0.0/24"
+          range_start: "10.100.0.50"
+          range_end: "10.100.0.199"
+          default_gateway: "10.100.0.1"
+          dns_servers:
+            - "10.1.1.10"
+            - "10.1.1.11"
+          domain: "acme-corp.internal"
+          lease_days: 1
+          excluded:
+            - "10.100.0.1"      # gateway
+            - "10.100.0.10"     # static server
+            - "10.100.0.11"     # static server
+          options:
+            - code: 43
+              value: "XXXX"     # vendor-specific option
+        - name: SUBNET-MGMT
+          subnet: "10.255.10.0/24"
+          range_start: "10.255.10.100"
+          range_end: "10.255.10.200"
+          default_gateway: "10.255.10.1"
+          dns_servers:
+            - "10.1.1.10"
+          lease_days: 7
+          vrf: MGMT
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify DHCP pool configured"
+        expected:
+          - config_snippet: "ip dhcp pool SUBNET-SERVERS-PROD"
+          - config_snippet: "network 10.100.0.0 255.255.255.0"

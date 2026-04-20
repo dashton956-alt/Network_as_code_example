@@ -1,0 +1,41 @@
+intent:
+  id: template-macsec-001
+  type: macsec
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "MACsec — enable 802.1AE link-layer encryption on inter-switch links"
+
+  scope:
+    devices:
+      - dc-east-leaf-01
+
+  macsec:
+    interface: Ethernet51
+    description: "MACsec-protected uplink to spine"
+    key_server_priority: 0        # lower = key server
+    cipher_suite: GCM-AES-128     # GCM-AES-128 | GCM-AES-256 | GCM-AES-XPN-128
+    pre_shared_key:
+      key_name: macsec-spine-uplink-key
+      secret_ref: vault:secret/macsec/spine-uplink   # ref to secrets manager
+    replay_protection: true
+    replay_window: 0
+
+  policy:
+    compliance: NONE
+    encryption: macsec
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify MACsec policy applied on uplink"
+        expected:
+          - config_snippet: "macsec"

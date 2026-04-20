@@ -1,0 +1,52 @@
+intent:
+  id: template-wireless-mesh-001
+  type: wireless_mesh
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Mesh Wireless — configure outdoor mesh backhaul for campus building extension"
+
+  scope:
+    sites:
+      - campus-lon
+    roles:
+      - wireless-controller
+
+  wireless:
+    mesh:
+      profile_name: MESH-OUTDOOR-LON
+      backhaul:
+        band: "5GHz"
+        rate: auto
+        authentication: eap      # eap | psk
+        bridge_group_name: BVI1
+      access:
+        ssid: ACME-CORP-STAFF
+        band: "2.4GHz"
+      map_aps:                   # mesh access points (non-root)
+        - mac: "00:11:22:33:44:55"
+          name: outdoor-map-01
+          parent_aps:
+            - "00:11:22:33:44:00"  # preferred root AP
+      root_aps:                  # RAPs connected via Ethernet
+        - mac: "00:11:22:33:44:00"
+          name: outdoor-rap-01
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify mesh profile configured"
+        expected:
+          - config_snippet: "mesh-profile MESH-OUTDOOR-LON"

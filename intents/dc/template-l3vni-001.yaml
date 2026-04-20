@@ -1,0 +1,47 @@
+intent:
+  id: template-l3vni-001
+  type: l3vni
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "L3VNI / IP VRF over VXLAN — configure L3 VNI for inter-VXLAN routing"
+
+  scope:
+    sites:
+      - dc-east
+    roles:
+      - leaf-switch
+
+  dc:
+    l3vni:
+      vrf_name: PROD
+      vni: 50100
+      rd: "65001:50100"
+      rt_import:
+        - "65001:50100"
+      rt_export:
+        - "65001:50100"
+      vlan_id: 3967               # internal VLAN for L3VNI SVI
+      svi:
+        ip_address: "10.255.255.1/31"
+        mtu: 9214
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify L3VNI VRF and VNI binding"
+        expected:
+          - config_snippet: "vni 50100"
+          - config_snippet: "vrf PROD"

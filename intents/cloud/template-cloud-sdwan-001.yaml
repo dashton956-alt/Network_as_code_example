@@ -1,0 +1,55 @@
+intent:
+  id: template-cloud-sdwan-001
+  type: cloud_sdwan
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Cloud SD-WAN Integration — connect SD-WAN fabric to cloud via hosted gateway"
+
+  scope:
+    devices:
+      - cloud-vmanage-hosted-01   # virtual device referencing SD-WAN cloud gateway
+
+  cloud:
+    provider: aws
+    sdwan:
+      cloud_gateway:
+        type: cisco-sdwan-cloud-onramp
+        vpc_id: vpc-0a1b2c3d4e5f
+        region: eu-west-2
+        hosted_gateways:
+          - az: eu-west-2a
+            instance_type: C5.xlarge
+          - az: eu-west-2b
+            instance_type: C5.xlarge
+      saas_optimisation:
+        enabled: true
+        apps:
+          - microsoft365
+          - salesforce
+          - zoom
+        gateway_selection: latency  # latency | cost
+      vpc_attachment:
+        vpcs:
+          - vpc-0a1b2c3d4e5f
+          - vpc-1a2b3c4d5e6f
+        route_propagation: true
+
+  policy:
+    compliance: NONE
+    encryption: ipsec
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify cloud SD-WAN gateway"
+        expected:
+          - config_snippet: "cloud-onramp"

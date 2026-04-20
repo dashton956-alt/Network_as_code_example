@@ -1,0 +1,53 @@
+intent:
+  id: template-pbr-001
+  type: pbr
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Policy-Based Routing — steer specific traffic flows based on source or DSCP"
+
+  scope:
+    devices:
+      - lon-edge-rtr-01
+
+  pbr:
+    policies:
+      - name: PBR-VOIP-TO-MPLS
+        description: "Route VoIP traffic via MPLS WAN"
+        match:
+          acl: ACL-VOIP-TRAFFIC    # traffic class matched by ACL
+        set:
+          next_hop: "10.1.1.1"
+          fallback_routing_table: true
+        apply_to:
+          - interface: GigabitEthernet0/1
+            direction: in
+      - name: PBR-VIDEO-TO-DIA
+        description: "Route video streaming via DIA link"
+        match:
+          dscp: AF41
+        set:
+          next_hop: "192.0.2.1"
+          fallback_routing_table: true
+        apply_to:
+          - interface: GigabitEthernet0/1
+            direction: in
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify PBR route-map applied"
+        expected:
+          - config_snippet: "ip policy route-map PBR-VOIP-TO-MPLS"

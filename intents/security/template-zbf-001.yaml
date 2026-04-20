@@ -1,0 +1,64 @@
+intent:
+  id: template-zbf-001
+  type: zbf
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Zone-Based Firewall — define security zones and inter-zone policies"
+
+  scope:
+    devices:
+      - lon-edge-rtr-01
+
+  security:
+    zones:
+      - name: INSIDE
+        interfaces:
+          - GigabitEthernet0/1
+          - GigabitEthernet0/2
+      - name: OUTSIDE
+        interfaces:
+          - GigabitEthernet0/0
+      - name: DMZ
+        interfaces:
+          - GigabitEthernet0/3
+    zone_pairs:
+      - src: INSIDE
+        dst: OUTSIDE
+        policy: ZP-INSIDE-TO-OUTSIDE
+      - src: OUTSIDE
+        dst: DMZ
+        policy: ZP-OUTSIDE-TO-DMZ
+    policies:
+      - name: ZP-INSIDE-TO-OUTSIDE
+        inspect:
+          - http
+          - https
+          - dns
+          - icmp
+        permit_established: true
+      - name: ZP-OUTSIDE-TO-DMZ
+        inspect:
+          - https
+        permit_established: true
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify zone-based firewall zones"
+        expected:
+          - config_snippet: "zone security INSIDE"
+          - config_snippet: "zone security OUTSIDE"
+          - config_snippet: "zone security DMZ"

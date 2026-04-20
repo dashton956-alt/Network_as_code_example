@@ -1,0 +1,51 @@
+intent:
+  id: template-route-redistribution-001
+  type: route_redistribution
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Route Redistribution — redistribute between OSPF and BGP at edge routers"
+
+  scope:
+    devices:
+      - lon-edge-rtr-01
+
+  routing:
+    redistribution:
+      - from: connected
+        into: ospf
+        process_id: 1
+        metric: 10
+        route_map: RM-CONNECTED-TO-OSPF
+      - from: ospf
+        process_id: 1
+        into: bgp
+        as_number: 65001
+        route_map: RM-OSPF-TO-BGP
+      - from: bgp
+        as_number: 65001
+        into: ospf
+        process_id: 1
+        route_map: RM-BGP-TO-OSPF
+        metric: 100
+        metric_type: E2           # E1 | E2 (OSPF external route type)
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify redistribute statements"
+        expected:
+          - config_snippet: "redistribute connected"
+          - config_snippet: "redistribute ospf 1"

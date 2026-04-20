@@ -1,0 +1,40 @@
+intent:
+  id: template-lag-001
+  type: lag
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Port Channel / LAG — bundle physical interfaces into a logical aggregate"
+
+  scope:
+    devices:
+      - dc-east-access-sw-01
+
+  lag:
+    port_channel_id: 1
+    description: "LAG to distribution switch"
+    mode: active                  # active | passive | on
+    load_balance: src-dst-mac     # src-dst-mac | src-dst-ip | round-robin
+    min_links: 1
+    members:
+      - interface: Ethernet1
+      - interface: Ethernet2
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify port-channel interface exists in running config"
+        expected:
+          - config_snippet: "Port-Channel1"

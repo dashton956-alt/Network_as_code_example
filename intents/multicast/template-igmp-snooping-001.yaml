@@ -1,0 +1,50 @@
+intent:
+  id: template-igmp-snooping-001
+  type: igmp_snooping
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "IGMP Snooping — suppress multicast flooding to non-member ports on access switches"
+
+  scope:
+    roles:
+      - access-switch
+      - leaf-switch
+
+  multicast:
+    igmp_snooping:
+      enabled: true
+      vlans:
+        - id: 100
+          enabled: true
+          querier: false
+          fast_leave: true
+        - id: 200
+          enabled: true
+          querier: true
+          querier_ip: "10.200.0.1"
+          query_interval: 125
+          max_response_time: 10
+      mrouter_ports:
+        - vlan: 100
+          interface: GigabitEthernet0/1  # uplink to PIM router
+      proxy_reporting: true
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify IGMP snooping enabled"
+        expected:
+          - config_snippet: "ip igmp snooping"

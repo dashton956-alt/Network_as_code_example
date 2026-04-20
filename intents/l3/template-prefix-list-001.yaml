@@ -1,0 +1,57 @@
+intent:
+  id: template-prefix-list-001
+  type: prefix_list
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Prefix List — define prefix-lists for BGP and route-map filtering"
+
+  scope:
+    devices:
+      - lon-edge-rtr-01
+
+  routing:
+    prefix_lists:
+      - name: PL-OSPF-ROUTES
+        entries:
+          - sequence: 10
+            action: permit
+            prefix: "10.0.0.0/8"
+            le: 32
+          - sequence: 20
+            action: permit
+            prefix: "172.16.0.0/12"
+            le: 32
+          - sequence: 100
+            action: deny
+            prefix: "0.0.0.0/0"
+            le: 32
+      - name: PL-ADVERTISE-TO-ISP
+        entries:
+          - sequence: 10
+            action: permit
+            prefix: "203.0.113.0/24"
+          - sequence: 100
+            action: deny
+            prefix: "0.0.0.0/0"
+            le: 32
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify prefix-list PL-OSPF-ROUTES"
+        expected:
+          - config_snippet: "ip prefix-list PL-OSPF-ROUTES"
+          - config_snippet: "ip prefix-list PL-ADVERTISE-TO-ISP"

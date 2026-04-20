@@ -1,0 +1,79 @@
+intent:
+  id: template-acl-001
+  type: acl
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "ACL — define and apply named IP access control lists on edge interfaces"
+
+  scope:
+    devices:
+      - lon-edge-rtr-01
+
+  security:
+    acls:
+      - name: ACL-INBOUND-INTERNET
+        type: extended
+        entries:
+          - sequence: 10
+            action: permit
+            protocol: tcp
+            src: any
+            dst: "10.100.0.0/24"
+            dst_port: 443
+            remark: "Allow HTTPS to DMZ servers"
+          - sequence: 20
+            action: permit
+            protocol: tcp
+            src: any
+            dst: "10.100.0.0/24"
+            dst_port: 80
+            remark: "Allow HTTP to DMZ servers"
+          - sequence: 100
+            action: deny
+            protocol: ip
+            src: any
+            dst: any
+            log: true
+            remark: "Deny all — logged"
+      - name: ACL-VOIP-TRAFFIC
+        type: extended
+        entries:
+          - sequence: 10
+            action: permit
+            protocol: udp
+            src: "10.50.0.0/16"
+            dst: any
+            dst_port: "5060"
+            remark: "SIP"
+          - sequence: 20
+            action: permit
+            protocol: udp
+            src: "10.50.0.0/16"
+            dst: any
+            dst_port: "16384-32768"
+            remark: "RTP"
+    apply:
+      - interface: GigabitEthernet0/0
+        acl: ACL-INBOUND-INTERNET
+        direction: in
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify ACL applied to interface"
+        expected:
+          - config_snippet: "ip access-group ACL-INBOUND-INTERNET in"
+          - config_snippet: "permit tcp any 10.100.0.0 0.0.0.255 eq 443"

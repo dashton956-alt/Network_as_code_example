@@ -1,0 +1,56 @@
+intent:
+  id: template-route-policy-001
+  type: route_policy
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Route Policy / Route Map — define route-maps used for redistribution and BGP policy"
+
+  scope:
+    devices:
+      - lon-edge-rtr-01
+
+  route_policy:
+    route_maps:
+      - name: RM-OSPF-TO-BGP
+        entries:
+          - sequence: 10
+            action: permit
+            match:
+              prefix_list: PL-OSPF-ROUTES
+            set:
+              local_preference: 100
+              community: "65001:100"
+          - sequence: 20
+            action: deny
+      - name: RM-BGP-TO-OSPF
+        entries:
+          - sequence: 10
+            action: permit
+            match:
+              community: "65001:200"
+            set:
+              metric: 50
+              metric_type: E1
+          - sequence: 20
+            action: deny
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify route-map RM-OSPF-TO-BGP exists"
+        expected:
+          - config_snippet: "route-map RM-OSPF-TO-BGP"
+          - config_snippet: "route-map RM-BGP-TO-OSPF"

@@ -1,0 +1,45 @@
+intent:
+  id: template-dhcp-snooping-001
+  type: dhcp_snooping
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "DHCP Snooping — enable on server VLANs and mark uplinks as trusted"
+
+  scope:
+    roles:
+      - access-switch
+
+  dhcp_snooping:
+    enabled: true
+    vlans:
+      - 100
+      - 101
+      - 200
+    trusted_ports:
+      - interface: GigabitEthernet0/1
+        desc: "Uplink to distribution"
+      - interface: Port-Channel1
+        desc: "LAG uplink"
+    rate_limit_untrusted: 15     # packets per second
+    option_82: true               # insert option 82 relay agent info
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify DHCP snooping is enabled"
+        expected:
+          - config_snippet: "ip dhcp snooping"
+          - config_snippet: "ip dhcp snooping vlan 100"

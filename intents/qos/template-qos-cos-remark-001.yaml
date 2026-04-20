@@ -1,0 +1,56 @@
+intent:
+  id: template-qos-cos-remark-001
+  type: qos_cos_remark
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "CoS Remarking — remark 802.1p CoS values on trunk ports for WAN QoS consistency"
+
+  scope:
+    roles:
+      - distribution-switch
+
+  qos:
+    cos_remark:
+      policy_name: COS-REMARK-TRUNK
+      classes:
+        - name: MATCH-VOICE-COS
+          match:
+            cos: 5                  # EF voice
+          set:
+            cos: 5
+            dscp: EF
+        - name: MATCH-VIDEO-COS
+          match:
+            cos: 4                  # AF41 video
+          set:
+            cos: 4
+            dscp: AF41
+        - name: MATCH-DEFAULT
+          match: any
+          set:
+            cos: 0
+            dscp: default
+      apply:
+        - interface: GigabitEthernet0/1
+          direction: in
+          type: trunk
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify CoS remark policy on trunk"
+        expected:
+          - config_snippet: "policy-map COS-REMARK-TRUNK"

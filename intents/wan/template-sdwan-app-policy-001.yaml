@@ -1,0 +1,59 @@
+intent:
+  id: template-sdwan-app-policy-001
+  type: sdwan_app_policy
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "SD-WAN Application Policy — steer application traffic to preferred transport"
+
+  scope:
+    devices:
+      - branch-lon-vedge-01
+
+  sdwan:
+    application_policy:
+      name: APP-POLICY-BRANCH-LON
+      vpn: 10
+      rules:
+        - name: VOICE-VIDEO-TO-MPLS
+          sequence: 10
+          match:
+            app_list: voice-video
+            dscp:
+              - EF
+              - AF41
+          action:
+            sla_class: VOICE-SLA
+            preferred_color: mpls
+            fallback_color: biz-internet
+            loss_correction: fec
+        - name: SAAS-TO-DIA
+          sequence: 20
+          match:
+            app_list: microsoft365
+          action:
+            redirect_dns: umbrella
+            fallback_to_routing: true
+        - name: DEFAULT
+          sequence: 65535
+          action:
+            preferred_color: biz-internet
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify app policy attached to VPN"
+        expected:
+          - config_snippet: "app-route policy"

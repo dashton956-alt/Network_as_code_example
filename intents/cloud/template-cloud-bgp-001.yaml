@@ -1,0 +1,54 @@
+intent:
+  id: template-cloud-bgp-001
+  type: cloud_bgp
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "BGP to Cloud Provider — configure eBGP sessions over Direct Connect to AWS"
+
+  scope:
+    devices:
+      - lon-edge-rtr-01
+
+  cloud:
+    provider: aws
+    bgp:
+      local_as: 65001
+      router_id: "10.255.0.1"
+      virtual_interfaces:
+        - name: dxvif-prod-001
+          vlan: 100
+          local_ip: "169.254.100.1/30"
+          peer_ip: "169.254.100.2"
+          amazon_asn: 64512
+          bgp_auth_key_ref: vault:secret/direct-connect/bgp-auth
+          advertised_prefixes:
+            - "10.0.0.0/8"
+          accepted_prefixes_max: 200
+        - name: dxvif-dev-001
+          vlan: 200
+          local_ip: "169.254.200.1/30"
+          peer_ip: "169.254.200.2"
+          amazon_asn: 64512
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: both
+    schedule: "*/30 * * * *"
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmBgpNeighbors
+        label: "Verify BGP to AWS Direct Connect"
+        expected:
+          - peer: 169.254.100.2
+            remote_as: 64512
+            state: Established

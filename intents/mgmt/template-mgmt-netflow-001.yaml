@@ -1,0 +1,53 @@
+intent:
+  id: template-mgmt-netflow-001
+  type: mgmt_netflow
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "NetFlow / IPFIX — configure flow export to central collector"
+
+  scope:
+    all_tenant_devices: true
+
+  management:
+    netflow:
+      version: 9                  # 5 | 9 | ipfix
+      collectors:
+        - ip: "10.1.2.10"
+          port: 2055
+          description: "Primary NetFlow collector"
+        - ip: "10.1.2.11"
+          port: 2055
+          description: "Secondary NetFlow collector"
+      flow_cache:
+        max_entries: 16000
+        active_timeout_mins: 1
+        inactive_timeout_secs: 15
+      sampling:
+        mode: deterministic       # deterministic | random
+        rate: 1000                # 1 in N packets
+      interfaces:
+        - name: GigabitEthernet0/0
+          direction: input
+        - name: GigabitEthernet0/1
+          direction: input
+          direction_output: true
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify NetFlow export configured"
+        expected:
+          - config_snippet: "ip flow-export destination 10.1.2.10 2055"

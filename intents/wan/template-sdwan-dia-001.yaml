@@ -1,0 +1,49 @@
+intent:
+  id: template-sdwan-dia-001
+  type: sdwan_dia
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "SD-WAN DIA — configure Direct Internet Access breakout at branch for SaaS traffic"
+
+  scope:
+    devices:
+      - branch-lon-vedge-01
+
+  sdwan:
+    dia:
+      enabled: true
+      vpn: 10
+      transport_interface: GigabitEthernet0/0
+      nat: true
+      nat_type: interface            # interface | pool
+      allowed_apps:
+        - microsoft365
+        - google-workspace
+        - zoom
+      dns_redirect:
+        enabled: true
+        server: umbrella             # umbrella | custom
+        custom_dns: null
+      security_connector:
+        enabled: false               # set true for Umbrella SIG integration
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify DIA NAT policy configured"
+        expected:
+          - config_snippet: "interface GigabitEthernet0/0"
+          - config_snippet: "nat"

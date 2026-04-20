@@ -1,0 +1,52 @@
+intent:
+  id: template-bgp-ipv6-af-001
+  type: bgp_ipv6_af
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "BGP IPv6 Address Family — activate IPv6 unicast AF on existing BGP peers"
+
+  scope:
+    devices:
+      - lon-edge-rtr-01
+
+  routing:
+    protocol: bgp
+    as_number: 65001
+    router_id: "10.255.0.1"
+    address_families:
+      ipv6_unicast:
+        enabled: true
+        neighbors:
+          - ip: "2001:db8:1::1"
+            remote_as: 1299
+            description: "Telia IPv6 session"
+            activate: true
+            send_community: both
+            next_hop_self: false
+        networks:
+          - "2001:db8:acme::/48"
+        redistribute:
+          - connected
+          - static
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: both
+    schedule: "*/30 * * * *"
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify BGP IPv6 address-family activated"
+        expected:
+          - config_snippet: "address-family ipv6"
+          - config_snippet: "neighbor 2001:db8:1::1 activate"

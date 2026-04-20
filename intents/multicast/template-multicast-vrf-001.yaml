@@ -1,0 +1,55 @@
+intent:
+  id: template-multicast-vrf-001
+  type: multicast_vrf
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Multicast VRF — enable PIM multicast routing within a VRF instance"
+
+  scope:
+    roles:
+      - pe-router
+
+  multicast:
+    vrf:
+      - name: PROD
+        ip_multicast_routing: true
+        pim:
+          mode: sparse-mode
+          rp:
+            type: static
+            address: "10.100.255.100"
+            groups:
+              - "224.0.0.0/4"
+          interfaces:
+            - name: GigabitEthernet0/2.100
+              enabled: true
+        igmp_version: 2
+      - name: DEV
+        ip_multicast_routing: true
+        pim:
+          mode: sparse-mode
+          rp:
+            type: static
+            address: "10.200.255.100"
+            groups:
+              - "224.0.0.0/4"
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify VRF multicast routing"
+        expected:
+          - config_snippet: "ip multicast-routing vrf PROD"

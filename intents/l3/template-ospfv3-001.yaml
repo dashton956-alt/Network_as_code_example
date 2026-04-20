@@ -1,0 +1,48 @@
+intent:
+  id: template-ospfv3-001
+  type: ospfv3
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "OSPFv3 (IPv6) — configure OSPFv3 for IPv6 routing on dual-stack core network"
+
+  scope:
+    roles:
+      - core-router
+
+  routing:
+    protocol: ospfv3
+    process_id: 1
+    router_id: "10.255.0.1"     # still uses 32-bit dotted-decimal router-id
+    areas:
+      - area_id: "0.0.0.0"
+        type: backbone
+    interfaces:
+      - name: GigabitEthernet0/0
+        area: "0.0.0.0"
+        network_type: point-to-point
+      - name: GigabitEthernet0/1
+        area: "0.0.0.0"
+        network_type: point-to-point
+    passive_interfaces:
+      - Loopback0
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: both
+    schedule: "*/30 * * * *"
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify OSPFv3 process configured"
+        expected:
+          - config_snippet: "router ospfv3 1"

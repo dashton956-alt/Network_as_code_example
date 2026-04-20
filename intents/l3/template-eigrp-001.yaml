@@ -1,0 +1,50 @@
+intent:
+  id: template-eigrp-001
+  type: eigrp
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "EIGRP — configure EIGRP named-mode process on enterprise campus routers"
+
+  scope:
+    sites:
+      - campus-lon
+    roles:
+      - distribution-switch
+      - core-router
+
+  routing:
+    protocol: eigrp
+    as_number: 100
+    mode: named                  # classic | named
+    router_id: "10.255.0.1"
+    networks:
+      - "10.0.0.0/8"
+      - "192.168.0.0/16"
+    passive_interfaces:
+      - Loopback0
+      - GigabitEthernet0/0       # WAN-facing
+    authentication:
+      enabled: true
+      type: hmac-sha-256
+      key_ref: vault:secret/eigrp/auth-key
+    stub: false                  # set true on spoke/branch routers
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify EIGRP process configured"
+        expected:
+          - config_snippet: "router eigrp"

@@ -1,0 +1,41 @@
+intent:
+  id: template-reachability-bgp-network-001
+  type: reachability_bgp_network
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "BGP Network Statement — advertise specific prefixes into BGP from the routing table"
+
+  scope:
+    devices:
+      - lon-edge-rtr-01
+
+  reachability:
+    bgp_network:
+      as_number: 65001
+      networks:
+        - prefix: "203.0.113.0/24"
+          backdoor: false
+          route_map: RM-ADVERTISE-TO-ISP
+        - prefix: "10.0.0.0/8"
+          backdoor: false
+      address_family: ipv4        # ipv4 | ipv6
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify BGP network statements"
+        expected:
+          - config_snippet: "network 203.0.113.0 mask 255.255.255.0"

@@ -1,0 +1,47 @@
+intent:
+  id: template-qos-trust-001
+  type: qos_trust
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "QoS Trust Boundary — configure which ports trust incoming DSCP/CoS markings"
+
+  scope:
+    roles:
+      - access-switch
+
+  qos:
+    trust:
+      default_policy: untrusted    # untrusted | trust-cos | trust-dscp
+      trusted_ports:
+        - interface: GigabitEthernet0/1
+          type: uplink
+          trust: dscp
+          description: "Uplink — trust DSCP from distribution"
+        - interface: GigabitEthernet0/24
+          type: ip-phone
+          trust: cos
+          auto_qos: voip           # use preset AutoQoS voice template
+          description: "IP phone trust boundary"
+      untrusted_ports:
+        - pattern: Ethernet[0-9]+  # all other access ports — untrust
+          remark_to: dscp-default  # clear DSCP on untrusted ingress
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify QoS trust on uplink"
+        expected:
+          - config_snippet: "mls qos trust dscp"

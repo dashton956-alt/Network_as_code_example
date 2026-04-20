@@ -1,0 +1,53 @@
+intent:
+  id: template-dot1x-nac-001
+  type: dot1x_nac
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "802.1X / NAC — configure port-based authentication with RADIUS on access switches"
+
+  scope:
+    roles:
+      - access-switch
+
+  security:
+    dot1x:
+      system_auth_control: true
+      radius_servers:
+        - ip: "10.1.1.10"
+          port_auth: 1812
+          port_acct: 1813
+          key_ref: vault:secret/radius/dot1x-key
+        - ip: "10.1.1.11"
+          port_auth: 1812
+          port_acct: 1813
+          key_ref: vault:secret/radius/dot1x-key
+      guest_vlan: 999
+      auth_fail_vlan: 998
+      critical_vlan: 997
+      ports:
+        - pattern: Ethernet[0-9]+
+          mode: auto              # auto | force-authorized | force-unauthorized
+          host_mode: multi-auth   # single-host | multi-host | multi-auth | multi-domain
+          reauthentication: true
+          reauth_timer: 3600
+          mab: true               # also allow MAC auth bypass
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify 802.1X system auth control"
+        expected:
+          - config_snippet: "dot1x system-auth-control"

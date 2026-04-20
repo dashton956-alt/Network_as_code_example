@@ -1,0 +1,55 @@
+intent:
+  id: template-fhrp-001
+  type: fhrp
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "HSRP / VRRP / GLBP — configure first-hop redundancy on gateway SVIs"
+
+  scope:
+    sites:
+      - dc-east
+    roles:
+      - distribution-switch
+
+  fhrp:
+    protocol: hsrp               # hsrp | vrrp | glbp
+    version: 2
+    groups:
+      - vlan: 100
+        group_id: 100
+        virtual_ip: "10.100.0.1"
+        active_priority: 110
+        standby_priority: 90
+        preempt: true
+        preempt_delay: 30
+        authentication: HSRP-SECRET-REF
+        track:
+          - interface: GigabitEthernet0/0
+            decrement: 20
+      - vlan: 200
+        group_id: 200
+        virtual_ip: "10.200.0.1"
+        active_priority: 110
+        standby_priority: 90
+        preempt: true
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify HSRP groups configured on SVIs"
+        expected:
+          - config_snippet: "standby version 2"
+          - config_snippet: "standby 100 ip 10.100.0.1"

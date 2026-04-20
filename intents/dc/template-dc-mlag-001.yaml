@@ -1,0 +1,55 @@
+intent:
+  id: template-dc-mlag-001
+  type: dc_mlag
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "MLAG in DC Fabric — configure dual-homed MLAG pair for server ToR connectivity"
+
+  scope:
+    sites:
+      - dc-east
+    roles:
+      - leaf-switch
+
+  dc:
+    mlag:
+      pair:
+        - device: dc-east-leaf-01
+          peer: dc-east-leaf-02
+      domain_id: DC-EAST-MLAG
+      local_ip: "10.255.254.0/31"
+      peer_ip: "10.255.254.1"
+      peer_link: Port-Channel999
+      peer_link_members:
+        - Ethernet47
+        - Ethernet48
+      mlag_vlan: 4094
+      timers:
+        heartbeat_interval: 4000
+        reload_delay: 300
+      mlag_interfaces:
+        - mlag_id: 1
+          description: "Server dual-home — node 1"
+          members:
+            - Ethernet1
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify MLAG domain configured"
+        expected:
+          - config_snippet: "mlag configuration"
+          - config_snippet: "domain-id DC-EAST-MLAG"

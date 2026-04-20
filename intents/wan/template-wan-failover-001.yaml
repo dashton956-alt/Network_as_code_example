@@ -1,0 +1,63 @@
+intent:
+  id: template-wan-failover-001
+  type: wan_failover
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "WAN Redundancy / Failover — configure IP SLA tracking for automatic WAN failover"
+
+  scope:
+    devices:
+      - lon-edge-rtr-01
+
+  wan:
+    failover:
+      ip_sla:
+        - track_id: 10
+          probe_type: icmp-echo
+          probe_target: "8.8.8.8"
+          source_interface: GigabitEthernet0/0
+          frequency_secs: 5
+          threshold_ms: 500
+          timeout_ms: 1000
+          failure_count: 3
+          recover_count: 5
+        - track_id: 11
+          probe_type: icmp-echo
+          probe_target: "8.8.4.4"
+          source_interface: GigabitEthernet0/1
+          frequency_secs: 5
+          threshold_ms: 1000
+          timeout_ms: 2000
+          failure_count: 3
+          recover_count: 5
+      tracked_routes:
+        - destination: "0.0.0.0/0"
+          next_hop: "203.0.113.1"
+          admin_distance: 1
+          track: 10
+        - destination: "0.0.0.0/0"
+          next_hop: "198.51.100.1"
+          admin_distance: 5
+          track: 11
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: both
+    schedule: "*/5 * * * *"
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify IP SLA and track objects"
+        expected:
+          - config_snippet: "ip sla 10"
+          - config_snippet: "track 10 ip sla 10"

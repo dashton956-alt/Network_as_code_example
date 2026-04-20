@@ -1,0 +1,49 @@
+intent:
+  id: template-dc-underlay-001
+  type: dc_underlay
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "DC Underlay (OSPF/BGP) — configure point-to-point underlay between spine and leaf"
+
+  scope:
+    sites:
+      - dc-east
+    roles:
+      - leaf-switch
+      - spine-switch
+
+  dc:
+    underlay:
+      protocol: bgp               # ospf | bgp
+      bgp:
+        as_base: 65000            # leaf AS = 65000 + leaf number
+        spine_as: 65000
+        unnumbered: true          # IPv6 link-local or unnumbered IPv4
+      loopback:
+        interface: Loopback0
+        ip_range: "10.255.0.0/24"  # allocated per-device
+      p2p_mtu: 9214
+      bfd: true
+      ecmp_max_paths: 8
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: rolling
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: both
+    schedule: "*/30 * * * *"
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify BGP underlay configured"
+        expected:
+          - config_snippet: "router bgp"
+          - config_snippet: "maximum-paths 8"

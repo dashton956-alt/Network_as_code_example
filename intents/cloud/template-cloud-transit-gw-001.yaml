@@ -1,0 +1,64 @@
+intent:
+  id: template-cloud-transit-gw-001
+  type: cloud_transit_gw
+  version: 1
+  tenant: acme-corp
+  change_ticket: CHG00XXXXX
+  description: "Transit Gateway / Hub-Spoke — attach VPCs to AWS TGW for inter-VPC routing"
+
+  scope:
+    devices:
+      - cloud-aws-lon-tgw-01     # virtual device representing TGW
+
+  cloud:
+    provider: aws
+    region: eu-west-2
+    transit_gateway:
+      name: acme-corp-tgw-eu-west-2
+      asn: 64512
+      auto_accept_shared_attachments: false
+      dns_support: true
+      vpn_ecmp_support: true
+      attachments:
+        - type: vpc
+          vpc_id: vpc-0a1b2c3d4e5f
+          subnet_ids:
+            - subnet-0a1b2c3d
+            - subnet-1a2b3c4d
+          name: prod-vpc-attach
+        - type: vpc
+          vpc_id: vpc-1a2b3c4d5e6f
+          subnet_ids:
+            - subnet-2a3b4c5d
+          name: dev-vpc-attach
+        - type: vpn
+          remote_ip: "203.0.113.1"
+          name: on-prem-vpn-attach
+      route_tables:
+        - name: prod-rt
+          associations:
+            - prod-vpc-attach
+          propagations:
+            - on-prem-vpn-attach
+          static_routes:
+            - destination: "10.0.0.0/8"
+              attachment: on-prem-vpn-attach
+
+  policy:
+    compliance: NONE
+    encryption: none
+
+  deployment:
+    controller: nornir
+    strategy: all_at_once
+    save_config: true
+
+  verification:
+    level: nuts
+    trigger: on_deploy
+    fail_action: alert
+    tests:
+      - test_class: TestNapalmRunningConfigContains
+        label: "Verify TGW attachment routing"
+        expected:
+          - config_snippet: "transit-gateway"
