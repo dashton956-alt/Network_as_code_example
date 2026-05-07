@@ -1,22 +1,31 @@
-intent:
-  id: template-lag-001
-  type: lag
-  version: 1
-  tenant: acme-corp
-  change_ticket: CHG00XXXXX
-  description: "Port Channel / LAG — bundle physical interfaces into a logical aggregate"
+# ─────────────────────────────────────────────────────────────────────────────
+# Intent type: lag
+# Purpose:     Bundle physical interfaces into a single logical Link Aggregation
+#              Group (LAG / Port-Channel) using LACP. Provides bandwidth
+#              aggregation and link-level redundancy.
+# ─────────────────────────────────────────────────────────────────────────────
 
+intent:
+  id: template-lag-001                   # MANDATORY
+  type: lag                              # MANDATORY
+  version: 1                             # MANDATORY
+  tenant: acme-corp                      # MANDATORY
+  change_ticket: CHG00XXXXX              # MANDATORY (replace with real ticket)
+  description: "Port Channel / LAG — bundle physical interfaces into a logical aggregate"  # MANDATORY
+
+  # ── Scope ───────────────────────────────────────────────────────────────────
   scope:
     devices:
-      - dc-east-access-sw-01
+      - dc-east-access-sw-01             # MANDATORY — LAGs are per-device
 
+  # ── LAG configuration ───────────────────────────────────────────────────────
   lag:
-    port_channel_id: 1
-    description: "LAG to distribution switch"
-    mode: active                  # active | passive | on
-    load_balance: src-dst-mac     # src-dst-mac | src-dst-ip | round-robin
-    min_links: 1
-    members:
+    port_channel_id: 1                   # MANDATORY — Port-Channel interface number
+    description: "LAG to distribution switch"  # OPTIONAL — logical interface description
+    mode: active                         # OPTIONAL — active (LACP) | passive | on (static)
+    load_balance: src-dst-mac            # OPTIONAL — src-dst-mac | src-dst-ip | round-robin
+    min_links: 1                         # OPTIONAL — minimum active members before LAG goes down
+    members:                             # MANDATORY — at least one physical interface
       - interface: Ethernet1
       - interface: Ethernet2
 
@@ -24,9 +33,10 @@ intent:
     compliance: NONE
     encryption: none
 
+  # ── Deployment / Verification ────────────────────────────────────────────────
   deployment:
     controller: nornir
-    strategy: rolling
+    strategy: rolling                    # OPTIONAL (default: rolling)
     save_config: true
 
   verification:

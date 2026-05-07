@@ -1,18 +1,27 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Intent type: mgmt_global_config
+# Purpose:     Day-0 bootstrap bundle applied to every managed device. Combines
+#              NTP, DNS, syslog, SNMP, SSH, banners, and NETCONF in a single
+#              intent to ensure a consistent baseline configuration at onboarding.
+# ─────────────────────────────────────────────────────────────────────────────
+
 intent:
-  id: corp-mgmt-global-config-all-devices-001
-  type: mgmt_global_config
-  version: 1
-  tenant: acme-corp
-  change_ticket: CHG0012403
-  description: "Day-0 global management bundle — NTP, DNS, Syslog, SNMP, SSH, banners, NETCONF for all devices"
+  id: corp-mgmt-global-config-all-devices-001  # MANDATORY
+  type: mgmt_global_config                     # MANDATORY
+  version: 1                                   # MANDATORY
+  tenant: acme-corp                            # MANDATORY
+  change_ticket: CHG0012403                    # MANDATORY (CHG + 7 digits)
+  description: "Day-0 global management bundle — NTP, DNS, Syslog, SNMP, SSH, banners, NETCONF for all devices"  # MANDATORY
 
+  # ── Scope ───────────────────────────────────────────────────────────────────
   scope:
-    all_tenant_devices: true
+    all_tenant_devices: true             # MANDATORY — day-0 config applies to every device
 
+  # ── Management bundle ───────────────────────────────────────────────────────
   management:
     # Hostname / Domain
-    hostname: "lab-arista-sw01"
-    domain_name: "acme-corp.local"
+    hostname: "lab-arista-sw01"          # OPTIONAL — override per-device hostname
+    domain_name: "acme-corp.local"       # OPTIONAL — used for SSH key generation
 
     # NTP
     ntp_servers:
@@ -52,7 +61,7 @@ intent:
         version: "2c"
 
     # SSH
-    ssh_version: 2
+    ssh_version: 2                       # MANDATORY — SSHv2 only; v1 is insecure
     ssh_timeout: 60
 
     # Banners
@@ -62,7 +71,7 @@ intent:
       Managed by Intent Networking — All sessions logged.
 
     # NETCONF / RESTCONF
-    netconf_enabled: true
+    netconf_enabled: true                # OPTIONAL — enable NETCONF for automation
     netconf_port: 830
     restconf_enabled: false
 
@@ -77,9 +86,10 @@ intent:
     compliance: NONE
     encryption: tls
 
+  # ── Deployment / Verification ────────────────────────────────────────────────
   deployment:
     controller: nornir
-    strategy: rolling
+    strategy: rolling                    # OPTIONAL (default: rolling)
     save_config: true
 
   verification:

@@ -1,27 +1,37 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Intent type: mgmt_ntp
+# Purpose:     Configure NTP servers on all tenant network devices to ensure
+#              synchronized clocks. Required for accurate log timestamps,
+#              certificate validity, and time-sensitive protocols (OSPF, BGP).
+# ─────────────────────────────────────────────────────────────────────────────
+
 intent:
-  id: corp-mgmt-ntp-all-sites-001
-  type: mgmt_ntp
-  version: 1
-  tenant: acme-corp
-  change_ticket: CHG0012356
-  description: "NTP configuration — all network devices — primary and secondary NTP servers"
+  id: corp-mgmt-ntp-all-sites-001        # MANDATORY
+  type: mgmt_ntp                         # MANDATORY
+  version: 1                             # MANDATORY
+  tenant: acme-corp                      # MANDATORY
+  change_ticket: CHG0012356              # MANDATORY (CHG + 7 digits)
+  description: "NTP configuration — all network devices — primary and secondary NTP servers"  # MANDATORY
 
+  # ── Scope ───────────────────────────────────────────────────────────────────
   scope:
-    all_tenant_devices: true
+    all_tenant_devices: true             # MANDATORY — NTP must apply to every device
 
+  # ── NTP servers ─────────────────────────────────────────────────────────────
   management:
-    ntp_servers:
-      - "10.0.0.1"
-      - "10.0.0.2"
-      - "pool.ntp.org"
+    ntp_servers:                         # MANDATORY — at least one NTP server
+      - "10.0.0.1"                       # Primary internal NTP server
+      - "10.0.0.2"                       # Secondary internal NTP server
+      - "pool.ntp.org"                   # OPTIONAL — public fallback NTP pool
 
   policy:
     compliance: NONE
     encryption: none
 
+  # ── Deployment / Verification ────────────────────────────────────────────────
   deployment:
     controller: nornir
-    strategy: rolling
+    strategy: rolling                    # OPTIONAL (default: rolling)
     save_config: true
 
   verification:

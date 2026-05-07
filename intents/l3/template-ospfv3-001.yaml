@@ -1,39 +1,49 @@
-intent:
-  id: template-ospfv3-001
-  type: ospfv3
-  version: 1
-  tenant: acme-corp
-  change_ticket: CHG00XXXXX
-  description: "OSPFv3 (IPv6) — configure OSPFv3 for IPv6 routing on dual-stack core network"
+# ─────────────────────────────────────────────────────────────────────────────
+# Intent type: ospfv3
+# Purpose:     Configure OSPFv3 for IPv6 routing on dual-stack core routers.
+#              OSPFv3 is the IPv6-native successor to OSPFv2 and supports both
+#              IPv4 and IPv6 address families in modern implementations.
+# ─────────────────────────────────────────────────────────────────────────────
 
+intent:
+  id: template-ospfv3-001                # MANDATORY
+  type: ospfv3                           # MANDATORY
+  version: 1                             # MANDATORY
+  tenant: acme-corp                      # MANDATORY
+  change_ticket: CHG00XXXXX              # MANDATORY (replace with real ticket)
+  description: "OSPFv3 (IPv6) — configure OSPFv3 for IPv6 routing on dual-stack core network"  # MANDATORY
+
+  # ── Scope ───────────────────────────────────────────────────────────────────
   scope:
     roles:
       - core-router
 
+  # ── OSPFv3 configuration ────────────────────────────────────────────────────
   routing:
-    protocol: ospfv3
-    process_id: 1
-    router_id: "10.255.0.1"     # still uses 32-bit dotted-decimal router-id
+    protocol: ospfv3                     # MANDATORY
+    process_id: 1                        # MANDATORY — OSPFv3 process ID
+    router_id: "10.255.0.1"             # MANDATORY — still uses 32-bit dotted-decimal router-id
     areas:
       - area_id: "0.0.0.0"
         type: backbone
     interfaces:
       - name: GigabitEthernet0/0
-        area: "0.0.0.0"
-        network_type: point-to-point
+        area: "0.0.0.0"                  # MANDATORY — area this interface belongs to
+        network_type: point-to-point     # OPTIONAL — point-to-point | broadcast
       - name: GigabitEthernet0/1
         area: "0.0.0.0"
         network_type: point-to-point
-    passive_interfaces:
+    passive_interfaces:                  # OPTIONAL — suppress OSPFv3 hellos on loopbacks
       - Loopback0
 
   policy:
     compliance: NONE
     encryption: none
 
+  # ── Deployment / Verification ────────────────────────────────────────────────
   deployment:
     controller: nornir
-    strategy: rolling
+    strategy: rolling                    # OPTIONAL (default: rolling)
     save_config: true
 
   verification:

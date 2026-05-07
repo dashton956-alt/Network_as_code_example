@@ -1,18 +1,26 @@
-intent:
-  id: corp-vlans-dc-east-001
-  type: vlan_provision
-  version: 1
-  tenant: acme-corp
-  change_ticket: CHG0012346
-  description: "Provision standard server VLANs across all access switches in DC East"
+# ─────────────────────────────────────────────────────────────────────────────
+# Intent type: vlan_provision
+# Purpose:     Provision the standard set of server, storage, management, and
+#              quarantine VLANs across all access-switches in DC East.
+# ─────────────────────────────────────────────────────────────────────────────
 
+intent:
+  id: corp-vlans-dc-east-001             # MANDATORY
+  type: vlan_provision                   # MANDATORY
+  version: 1                             # MANDATORY
+  tenant: acme-corp                      # MANDATORY
+  change_ticket: CHG0012346              # MANDATORY (CHG + 7 digits)
+  description: "Provision standard server VLANs across all access switches in DC East"  # MANDATORY
+
+  # ── Scope ───────────────────────────────────────────────────────────────────
   scope:
     sites:
-      - dc-east
+      - dc-east                          # Apply to all devices at DC East
     roles:
-      - access-switch
+      - access-switch                    # Restrict to access-switch role only
 
-  vlans:
+  # ── VLAN definitions ────────────────────────────────────────────────────────
+  vlans:                                 # MANDATORY — at least one VLAN entry required
     - id: 100
       name: SERVERS-PROD
       description: "Production server VLAN"
@@ -29,13 +37,14 @@ intent:
       name: QUARANTINE
       description: "Quarantine VLAN for non-compliant devices"
 
+  # ── Deployment / Verification ────────────────────────────────────────────────
   deployment:
     controller: nornir
-    strategy: rolling
-    save_config: true
+    strategy: rolling                    # OPTIONAL (default: rolling)
+    save_config: true                    # OPTIONAL (default: true)
 
   verification:
-    level: nuts
+    level: nuts                          # nuts verifies VLAN table via NAPALM
     trigger: on_deploy
     fail_action: alert
     tests:

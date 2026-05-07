@@ -1,35 +1,45 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Intent type: mgmt_dns_dhcp
+# Purpose:     Configure DNS resolver and DHCP client settings on all devices.
+#              Internal DNS servers provide name resolution; DHCP client is
+#              used only for OOB management interface addressing via the MGMT VRF.
+# ─────────────────────────────────────────────────────────────────────────────
+
 intent:
-  id: template-mgmt-dns-dhcp-001
-  type: mgmt_dns_dhcp
-  version: 1
-  tenant: acme-corp
-  change_ticket: CHG00XXXXX
-  description: "DNS / DHCP — configure DNS resolver and DHCP client settings on all devices"
+  id: template-mgmt-dns-dhcp-001         # MANDATORY
+  type: mgmt_dns_dhcp                    # MANDATORY
+  version: 1                             # MANDATORY
+  tenant: acme-corp                      # MANDATORY
+  change_ticket: CHG00XXXXX              # MANDATORY (replace with real ticket)
+  description: "DNS / DHCP — configure DNS resolver and DHCP client settings on all devices"  # MANDATORY
 
+  # ── Scope ───────────────────────────────────────────────────────────────────
   scope:
-    all_tenant_devices: true
+    all_tenant_devices: true             # MANDATORY — DNS must apply to every device
 
+  # ── DNS / DHCP configuration ────────────────────────────────────────────────
   management:
     dns:
-      servers:
+      servers:                           # MANDATORY — at least one DNS server
         - "10.1.1.10"
         - "10.1.1.11"
-      search_domains:
+      search_domains:                    # OPTIONAL — domain search list for hostname resolution
         - "acme-corp.internal"
         - "mgmt.acme-corp.internal"
-      domain_name: "acme-corp.internal"
+      domain_name: "acme-corp.internal"  # OPTIONAL — primary DNS domain
     dhcp:
-      client_id: hostname
-      default_gateway_override: false  # true = accept default from DHCP
-      vrf: MGMT
+      client_id: hostname                # OPTIONAL — DHCP client-id sent in discover
+      default_gateway_override: false    # OPTIONAL — false = ignore DHCP-provided default GW
+      vrf: MGMT                          # OPTIONAL — VRF scope for DHCP client
 
   policy:
     compliance: NONE
     encryption: none
 
+  # ── Deployment / Verification ────────────────────────────────────────────────
   deployment:
     controller: nornir
-    strategy: rolling
+    strategy: rolling                    # OPTIONAL (default: rolling)
     save_config: true
 
   verification:

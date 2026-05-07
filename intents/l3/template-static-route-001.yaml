@@ -1,22 +1,32 @@
-intent:
-  id: template-static-route-001
-  type: static_route
-  version: 1
-  tenant: acme-corp
-  change_ticket: CHG00XXXXX
-  description: "Static Route — configure static IP routes on edge and branch devices"
+# ─────────────────────────────────────────────────────────────────────────────
+# Intent type: static_route
+# Purpose:     Configure static routes on a branch router. The default route
+#              points to the ISP; summary routes for corporate ranges point to
+#              the DC edge router. Admin distance 1 ensures static routes
+#              take precedence over dynamic routing protocols.
+# ─────────────────────────────────────────────────────────────────────────────
 
+intent:
+  id: template-static-route-001          # MANDATORY
+  type: static_route                     # MANDATORY
+  version: 1                             # MANDATORY
+  tenant: acme-corp                      # MANDATORY
+  change_ticket: CHG00XXXXX              # MANDATORY (replace with real ticket)
+  description: "Static Route — configure static IP routes on edge and branch devices"  # MANDATORY
+
+  # ── Scope ───────────────────────────────────────────────────────────────────
   scope:
     devices:
-      - branch-lon-rtr-01
+      - branch-lon-rtr-01                # MANDATORY — static routes are per-device
 
+  # ── Static routes ───────────────────────────────────────────────────────────
   routing:
-    protocol: static
+    protocol: static                     # MANDATORY
     routes:
-      - destination: "0.0.0.0/0"
-        next_hop: "192.168.1.1"
+      - destination: "0.0.0.0/0"         # MANDATORY — destination prefix
+        next_hop: "192.168.1.1"           # MANDATORY — next-hop IP or interface
         description: "Default route to ISP"
-        admin_distance: 1
+        admin_distance: 1                 # OPTIONAL (default: 1) — lower = preferred
       - destination: "10.0.0.0/8"
         next_hop: "192.168.10.1"
         description: "Corporate LAN summary"
@@ -30,6 +40,7 @@ intent:
     compliance: NONE
     encryption: none
 
+  # ── Deployment / Verification ────────────────────────────────────────────────
   deployment:
     controller: nornir
     strategy: all_at_once

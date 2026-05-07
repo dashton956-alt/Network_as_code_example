@@ -1,39 +1,51 @@
-intent:
-  id: template-route-redistribution-001
-  type: route_redistribution
-  version: 1
-  tenant: acme-corp
-  change_ticket: CHG00XXXXX
-  description: "Route Redistribution — redistribute between OSPF and BGP at edge routers"
+# ─────────────────────────────────────────────────────────────────────────────
+# Intent type: route_redistribution
+# Purpose:     Configure mutual redistribution between OSPF and BGP at the
+#              edge router. Connected routes feed into OSPF; OSPF routes are
+#              selectively injected into BGP; BGP learned routes return to OSPF
+#              with a controlled metric.
+# HIGH-IMPACT TYPE — incorrect redistribution can cause routing loops.
+# ─────────────────────────────────────────────────────────────────────────────
 
+intent:
+  id: template-route-redistribution-001  # MANDATORY
+  type: route_redistribution             # MANDATORY
+  version: 1                             # MANDATORY
+  tenant: acme-corp                      # MANDATORY
+  change_ticket: CHG00XXXXX              # MANDATORY (replace with real ticket)
+  description: "Route Redistribution — redistribute between OSPF and BGP at edge routers"  # MANDATORY
+
+  # ── Scope ───────────────────────────────────────────────────────────────────
   scope:
     devices:
-      - lon-edge-rtr-01
+      - lon-edge-rtr-01                  # MANDATORY — redistribution is per-device
 
+  # ── Redistribution rules ────────────────────────────────────────────────────
   routing:
     redistribution:
-      - from: connected
-        into: ospf
+      - from: connected                  # MANDATORY — source routing table
+        into: ospf                       # MANDATORY — destination routing protocol
         process_id: 1
-        metric: 10
-        route_map: RM-CONNECTED-TO-OSPF
+        metric: 10                       # OPTIONAL — seed metric for redistributed routes
+        route_map: RM-CONNECTED-TO-OSPF  # OPTIONAL (RECOMMENDED) — always filter with route-map
       - from: ospf
         process_id: 1
         into: bgp
         as_number: 65001
-        route_map: RM-OSPF-TO-BGP
+        route_map: RM-OSPF-TO-BGP        # OPTIONAL (RECOMMENDED) — prevents full table leak to BGP
       - from: bgp
         as_number: 65001
         into: ospf
         process_id: 1
         route_map: RM-BGP-TO-OSPF
         metric: 100
-        metric_type: E2           # E1 | E2 (OSPF external route type)
+        metric_type: E2                  # OPTIONAL — E1 (cumulative) | E2 (fixed cost)
 
   policy:
     compliance: NONE
     encryption: none
 
+  # ── Deployment / Verification ────────────────────────────────────────────────
   deployment:
     controller: nornir
     strategy: all_at_once

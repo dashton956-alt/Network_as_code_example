@@ -1,23 +1,32 @@
-intent:
-  id: template-prefix-list-001
-  type: prefix_list
-  version: 1
-  tenant: acme-corp
-  change_ticket: CHG00XXXXX
-  description: "Prefix List — define prefix-lists for BGP and route-map filtering"
+# ─────────────────────────────────────────────────────────────────────────────
+# Intent type: prefix_list
+# Purpose:     Define named prefix-lists used for BGP inbound/outbound filtering
+#              and route-map match conditions. Separate lists for internal OSPF
+#              routes and prefixes advertised to the ISP.
+# ─────────────────────────────────────────────────────────────────────────────
 
+intent:
+  id: template-prefix-list-001           # MANDATORY
+  type: prefix_list                      # MANDATORY
+  version: 1                             # MANDATORY
+  tenant: acme-corp                      # MANDATORY
+  change_ticket: CHG00XXXXX              # MANDATORY (replace with real ticket)
+  description: "Prefix List — define prefix-lists for BGP and route-map filtering"  # MANDATORY
+
+  # ── Scope ───────────────────────────────────────────────────────────────────
   scope:
     devices:
-      - lon-edge-rtr-01
+      - lon-edge-rtr-01                  # MANDATORY — prefix-lists are per-device
 
+  # ── Prefix list definitions ─────────────────────────────────────────────────
   routing:
     prefix_lists:
-      - name: PL-OSPF-ROUTES
+      - name: PL-OSPF-ROUTES             # MANDATORY — prefix-list name
         entries:
-          - sequence: 10
-            action: permit
+          - sequence: 10                 # MANDATORY — sequence number (lower = evaluated first)
+            action: permit               # MANDATORY — permit | deny
             prefix: "10.0.0.0/8"
-            le: 32
+            le: 32                       # OPTIONAL — match prefixes up to this length (le = less-equal)
           - sequence: 20
             action: permit
             prefix: "172.16.0.0/12"
@@ -25,12 +34,12 @@ intent:
           - sequence: 100
             action: deny
             prefix: "0.0.0.0/0"
-            le: 32
+            le: 32                       # Implicit deny-all with explicit entry
       - name: PL-ADVERTISE-TO-ISP
         entries:
           - sequence: 10
             action: permit
-            prefix: "203.0.113.0/24"
+            prefix: "203.0.113.0/24"     # Our PI/PA address space to advertise
           - sequence: 100
             action: deny
             prefix: "0.0.0.0/0"
@@ -40,6 +49,7 @@ intent:
     compliance: NONE
     encryption: none
 
+  # ── Deployment / Verification ────────────────────────────────────────────────
   deployment:
     controller: nornir
     strategy: all_at_once
