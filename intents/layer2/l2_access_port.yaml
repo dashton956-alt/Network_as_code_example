@@ -1,0 +1,48 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Intent type: l2_access_port
+# Purpose:     Configure a switchport as an access (untagged) port assigned to
+#              a single VLAN. Typically used for end-host / server connections.
+# ─────────────────────────────────────────────────────────────────────────────
+
+id: acme-access-port-001               # MANDATORY
+type: l2_access_port                   # MANDATORY
+version: 1                             # MANDATORY
+tenant: acme-corp                      # MANDATORY
+description: "Server Gi0/1 on leaf-01 — PROD-SERVERS VLAN 100"  # MANDATORY (>=10 chars)
+change_ticket: CHG0030002              # MANDATORY (CHG + 7 digits)
+approved_by: ""                        # OPTIONAL here; MANDATORY for high-impact types only
+
+# ── Scope ─────────────────────────────────────────────────────────────────────
+scope:
+  devices: [leaf-01]                   # MANDATORY — usually a single device for port intents
+  # sites: [dc-east]                   # OPTIONAL alternative — all devices at a site
+  # roles: [access-switch]             # OPTIONAL alternative — all devices with this role
+
+# ── Port identity ─────────────────────────────────────────────────────────────
+interface: GigabitEthernet0/1          # MANDATORY — exact interface name as shown in Nautobot
+
+# ── VLAN assignment ───────────────────────────────────────────────────────────
+vlan_id: 100                           # MANDATORY — untagged VLAN for this access port
+
+voice_vlan: 150                        # OPTIONAL — Cisco voice VLAN for IP phones (CDP/LLDP)
+                                       #   Sends tagged voice traffic on a second VLAN
+                                       #   Remove this field entirely if not using VoIP
+
+description: "srv-web-01 — production web server"   # OPTIONAL — interface description on device
+
+# ── Spanning tree ─────────────────────────────────────────────────────────────
+portfast: true                         # OPTIONAL (default: true) — skip STP listening/learning
+                                       #   Safe for server/host ports; NEVER use on uplink ports
+bpdu_guard: true                       # OPTIONAL (default: true) — err-disable port if BPDU received
+                                       #   Prevents rogue switch attacks on access ports
+
+# ── Deployment ────────────────────────────────────────────────────────────────
+deployment:
+  strategy: rolling                    # OPTIONAL (default: rolling) — rolling | canary | all_at_once
+  save_config: true                    # OPTIONAL (default: true)
+
+# ── Verification ──────────────────────────────────────────────────────────────
+verification:
+  level: basic                         # OPTIONAL (default: basic) — basic | nuts
+  trigger: on_deploy                   # OPTIONAL (default: on_deploy) — on_deploy | scheduled | both
+  fail_action: alert                   # OPTIONAL (default: alert) — alert | rollback | remediate
